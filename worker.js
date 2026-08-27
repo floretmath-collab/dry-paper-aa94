@@ -14,10 +14,8 @@ function json(data, status = 200) {
 
 function getSecrets(env) {
   if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY non configurée dans Cloudflare.");
-  if (!env.GWADA_ENTITLEMENT_SECRET || env.GWADA_ENTITLEMENT_SECRET.length < 32) {
-    throw new Error("GWADA_ENTITLEMENT_SECRET doit contenir au moins 32 caractères.");
-  }
-  return { stripe: env.STRIPE_SECRET_KEY, entitlement: env.GWADA_ENTITLEMENT_SECRET };
+  const entitlement = env.GWADA_ENTITLEMENT_SECRET || env.STRIPE_SECRET_KEY;
+  return { stripe: env.STRIPE_SECRET_KEY, entitlement };
 }
 
 function toBase64Url(bytes) {
