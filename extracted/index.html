@@ -1,0 +1,1585 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<script>
+document.addEventListener("input",function(e){
+  if(e.target && /^f(Basket|Days|Food|Var|Rent|Fixed|Staff|Owner|Initial)$/.test(e.target.id||"") && planRank(getPurchasedPlan())>=1){
+    setTimeout(renderPremiumActionPlan,0);
+  }
+});
+
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GWADAPROJET — Prototype V1</title>
+<style>
+:root{
+  --navy:#0b1f44; --green:#159447; --green2:#0d7d3a; --light:#f6faf7;
+  --line:#dfe7e3; --orange:#f5a300; --purple:#6c3bd1; --red:#d84a4a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--navy);background:#fff}
+.hero{
+  min-height:100vh;background:
+    linear-gradient(90deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.88) 38%,rgba(255,255,255,.18) 72%,rgba(255,255,255,.05) 100%),
+    url('assets/beach.jpeg') center/cover no-repeat;
+  padding:28px 24px 48px;
+}
+.wrap{max-width:1080px;margin:auto}
+.brand{display:flex;align-items:center;gap:16px}
+.brand img{width:78px;height:78px;object-fit:contain;border-radius:14px;background:white}
+.brand-name{font-weight:800;font-size:42px;letter-spacing:-1px}
+.brand-name .g{color:var(--green)}
+.tag{font-size:20px;margin-top:2px}
+h1{font-size:58px;line-height:1.03;max-width:720px;margin:80px 0 18px}
+h1 .g{color:var(--green)}
+.lead{font-size:22px;line-height:1.45;max-width:670px}
+.card{background:rgba(255,255,255,.97);border:1px solid rgba(10,40,30,.08);border-radius:28px;padding:26px;box-shadow:0 16px 50px rgba(0,0,0,.12)}
+.start-card{max-width:760px;margin-top:34px}
+input,select,textarea{width:100%;padding:16px;border:1px solid #cfd8d4;border-radius:14px;font-size:16px;background:#fff}
+textarea{min-height:96px;resize:vertical}
+.btn{border:0;border-radius:14px;padding:16px 22px;font-weight:800;font-size:18px;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--green2),#1fb454);color:#fff;width:100%}
+.btn-ghost{background:#fff;color:var(--green2);border:1px solid var(--green2)}
+.small{font-size:13px;color:#60706a}
+.badges{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:14px}
+.badges span:before{content:"✓";color:var(--green);font-weight:800;margin-right:6px}
+
+.section{padding:52px 24px;background:#fff}
+.title{text-align:center;font-size:34px;margin:0 0 26px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.benefit{text-align:center;padding:18px}
+.icon{width:62px;height:62px;border-radius:50%;background:#eaf6ee;display:grid;place-items:center;margin:0 auto 10px;font-size:28px}
+.pricing{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:820px;margin:auto}
+.price{font-size:44px;font-weight:800}
+.offer{border:1px solid #d7e4da;border-radius:22px;padding:24px;background:white}
+.offer.reco{border:2px solid var(--green);position:relative}
+.ribbon{position:absolute;top:-14px;right:22px;background:#ffc942;border-radius:999px;padding:6px 14px;font-weight:800;font-size:12px}
+
+#wizard{display:none;background:linear-gradient(rgba(255,255,255,.82),rgba(255,255,255,.94)),url('assets/beach.jpeg') top center/cover fixed no-repeat;min-height:100vh;padding:22px}
+.progress{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:20px 0}
+.step-dot{padding:10px 8px;border-radius:999px;background:#eef2ef;text-align:center;font-size:12px}
+.step-dot.active,.step-dot.done{background:#dff3e5;color:var(--green2);font-weight:800}
+.q{display:none}
+.q.active{display:block}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.choice{border:1px solid #d6dfdb;border-radius:16px;padding:15px;cursor:pointer;background:white}
+.choice.active{border:2px solid var(--green);background:#f1fbf4}
+.actions{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.actions .btn{min-width:150px}
+
+#diagnostic{display:none;padding:24px;background:#f5f8f6;min-height:100vh}
+.score{display:flex;gap:22px;align-items:center}
+.score-circle{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0 82%,#dce7df 82%);position:relative}
+.score-circle:after{content:"";position:absolute;inset:13px;background:white;border-radius:50%}
+.score-value{z-index:1;font-size:42px;font-weight:900}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+.metric{background:white;border-radius:18px;padding:16px;border:1px solid #e3ebe6}
+.metric strong{display:block;font-size:28px;margin-top:8px}
+.diag-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:18px}
+.locked{filter:saturate(.8);opacity:.93}
+.locklist li{margin:8px 0}
+.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.cta{border-radius:20px;padding:22px;background:white;border:2px solid var(--green)}
+.cta.premium{border-color:var(--purple)}
+.cta .btn{width:100%}
+
+@media(max-width:760px){
+  .brand-name{font-size:28px}.brand img{width:58px;height:58px}
+  h1{font-size:42px;margin-top:50px}
+  .lead{font-size:18px}
+  .grid4,.pricing,.metrics,.diag-grid,.cta-grid,.row,.choice-grid{grid-template-columns:1fr}
+  .progress{grid-template-columns:repeat(3,1fr)}
+}
+
+.fin-panel{background:#fff;border:1px solid #e3ebe6;border-radius:22px;padding:20px;margin-top:18px}
+.fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.fin-grid label{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+.scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.scenario{background:white;border:1px solid #dce7df;border-radius:18px;padding:18px}
+.scenario.realistic{border:2px solid var(--green)}
+.scenario strong{display:block;font-size:26px;margin:8px 0}
+.kpi-positive{color:var(--green2)}
+.kpi-warning{color:#bb7a00}
+.kpi-negative{color:#b22d2d}
+.note{background:#fff8df;border:1px solid #f0d78a;border-radius:14px;padding:12px 14px;font-size:13px}
+.table-wrap{overflow:auto;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:11px;border-bottom:1px solid #e7ece9;text-align:right}
+th:first-child,td:first-child{text-align:left}
+@media(max-width:760px){.fin-grid,.scenarios{grid-template-columns:1fr}}
+
+
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.status-card{background:#fff;border:1px solid #dfe7e3;border-radius:18px;padding:17px;position:relative}
+.status-card.best{border:2px solid var(--green);box-shadow:0 8px 22px rgba(21,148,71,.12)}
+.status-card .scorebar{height:8px;background:#edf2ef;border-radius:999px;overflow:hidden;margin:9px 0 13px}
+.status-card .scorebar span{display:block;height:100%;background:var(--green)}
+.status-card h3{margin:0 0 4px}
+.status-card ul{padding-left:18px;font-size:13px;line-height:1.45}
+.best-label{position:absolute;right:12px;top:12px;background:#dff3e5;color:var(--green2);font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px}
+.legal-warning{background:#fff4dd;border:1px solid #f0cc75;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:13px}
+@media(max-width:900px){.status-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.status-grid{grid-template-columns:1fr}}
+
+
+#printPlan{display:none}
+@media print{
+  body *{visibility:hidden!important}
+  #printPlan,#printPlan *{visibility:visible!important}
+  #printPlan{display:block!important;position:absolute;left:0;top:0;width:100%;padding:22px;color:#111;background:#fff}
+  #printPlan h1{font-size:28px;margin:0 0 8px;color:#159447}
+  #printPlan h2{font-size:18px;color:#0b1f44;border-bottom:1px solid #dfe7e3;padding-bottom:5px;margin-top:20px}
+  #printPlan table{width:100%;border-collapse:collapse}
+  #printPlan th,#printPlan td{border:1px solid #ddd;padding:7px;text-align:left}
+  #printPlan .cover{padding:80px 0;text-align:center;page-break-after:always}
+  #printPlan .pagebreak{page-break-before:always}
+  @page{size:A4;margin:15mm}
+}
+
+
+.modal{display:none;position:fixed;inset:0;background:rgba(7,22,42,.58);z-index:9999;align-items:center;justify-content:center;padding:18px}
+.modal.open{display:flex}
+.modal-card{background:#fff;border-radius:24px;max-width:520px;width:100%;padding:26px;box-shadow:0 25px 70px rgba(0,0,0,.28)}
+.modal-card h2{margin-top:0}
+.account-pill{margin-left:auto;background:#eef8f1;color:#0d7d3a;border-radius:999px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer}
+.paywall{position:relative}
+.paywall:after{content:"🔒 Débloque cette partie avec ton offre";position:absolute;inset:0;background:rgba(255,255,255,.88);display:grid;place-items:center;text-align:center;font-weight:800;border-radius:18px;padding:20px}
+.unlocked:after{display:none}
+.checkout-total{font-size:34px;font-weight:900;color:#159447}
+.formline{margin:12px 0}
+.success{background:#eaf8ee;border:1px solid #bfe2c9;padding:14px;border-radius:14px;color:#126a36}
+
+
+.premium-dashboard{display:grid;gap:16px;margin-top:14px}
+.premium-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.premium-kpi{background:#f5faf7;border:1px solid #dcebe2;border-radius:16px;padding:14px}
+.premium-kpi b{display:block;font-size:21px;color:#0d7d3a;margin-top:5px}
+.premium-table{width:100%;border-collapse:collapse;margin-top:10px}
+.premium-table th,.premium-table td{padding:10px;border-bottom:1px solid #e7ece9;text-align:left;font-size:14px}
+.premium-table th{background:#f6f8f7;color:#0b1f44}
+.premium-block{background:#fff;border:1px solid #e2e8e4;border-radius:18px;padding:17px;margin-top:14px}
+.premium-block h3{margin-top:0;color:#0b1f44}
+.priority{display:flex;gap:10px;align-items:flex-start;margin:10px 0}
+.priority-num{min-width:28px;height:28px;border-radius:50%;background:#159447;color:#fff;display:grid;place-items:center;font-weight:800}
+.risk-chip{display:inline-block;padding:7px 10px;margin:4px;border-radius:999px;background:#fff4df;border:1px solid #f0d39b;font-size:13px}
+@media(max-width:700px){.premium-kpis{grid-template-columns:1fr 1fr}.premium-table th,.premium-table td{padding:7px;font-size:12px}}
+
+
+/* V11 — business-plan preview that works on mobile before printing */
+body.bp-mode{overflow:hidden}
+body.bp-mode #printPlan{
+  display:block !important;
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  background:#eef3f0;
+  padding:0;
+}
+#printPlan .bp-screen{
+  max-width:900px;
+  margin:0 auto;
+  background:#fff;
+  min-height:100vh;
+  padding:26px 34px 60px;
+  box-shadow:0 0 30px rgba(0,0,0,.08);
+}
+.bp-toolbar{
+  position:sticky;
+  top:0;
+  z-index:3;
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 14px;
+  background:#0b1f44;
+  color:#fff;
+  border-radius:0 0 16px 16px;
+  margin:-26px -34px 24px;
+}
+.bp-toolbar .bp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bp-toolbtn{
+  border:0;
+  border-radius:12px;
+  padding:11px 14px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+}
+.bp-toolbtn.primary{background:#20a853;color:#fff}
+.bp-toolbtn.secondary{background:#fff;color:#0b1f44}
+.bp-help{
+  background:#eef8f1;
+  border:1px solid #cfe7d6;
+  border-radius:14px;
+  padding:12px 14px;
+  margin:10px 0 20px;
+  color:#244b33;
+  font-size:14px;
+}
+@media(max-width:700px){
+  #printPlan .bp-screen{padding:18px 16px 50px}
+  .bp-toolbar{margin:-18px -16px 18px;align-items:flex-start;flex-direction:column}
+  .bp-toolbar .bp-actions{width:100%}
+  .bp-toolbtn{flex:1}
+}
+@media print{
+  .bp-toolbar,.bp-help{display:none!important}
+  body.bp-mode{overflow:visible}
+  #printPlan .bp-screen{max-width:none;margin:0;padding:0;box-shadow:none}
+}
+
+
+/* V14 — frontière gratuit / payant */
+.free-preview-metrics{grid-template-columns:repeat(3,1fr)}
+.free-value-card{margin:18px 0;padding:20px;border:1px solid #cfe4d4;border-radius:20px;background:#f4fbf5}
+.free-value-card h3{margin:0 0 8px;color:#102650}
+.free-value-card p{margin:0;line-height:1.5;color:#405348}
+.locked-preview{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0 24px}
+.locked-preview>div{padding:18px;border-radius:18px;background:linear-gradient(135deg,#f7f8f8,#eef4ef);border:1px solid #dce6df}
+.locked-preview b{display:block;color:#102650;margin-bottom:6px}
+.locked-preview span{font-size:14px;color:#68746d}
+@media(max-width:650px){
+  .free-preview-metrics,.locked-preview{grid-template-columns:1fr}
+}
+
+
+/* V15 — paiement Stripe vérifié côté serveur */
+.secure-payment-note{margin:14px 0;padding:14px 16px;border:1px solid #cfe4d4;border-radius:14px;background:#f4fbf5;color:#31513a;font-size:14px;line-height:1.45}
+.payment-status{display:none;margin:12px 0;padding:12px 14px;border-radius:12px;background:#fff6dc;color:#6b5311;font-size:14px}
+
+</style>
+</head>
+<body>
+
+<section id="home" class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <img src="assets/logo.jpeg" alt="Carte de la Guadeloupe">
+      <div><div class="brand-name">GWADA<span class="g">PROJET</span></div><div class="tag">Ton idée. Ton business. Ton avenir.</div></div>
+      <div class="account-pill" id="accountPill" onclick="openAccount()">Créer mon compte</div>
+    </div>
+
+    <h1>De ton idée à ton business <span class="g">rentable</span>, on t’aide <span class="g">à y arriver.</span></h1>
+    <p class="lead">GWADAPROJET t’accompagne pas à pas pour créer un projet solide, rentable et adapté au marché guadeloupéen.</p>
+
+    <div class="card start-card">
+      <h2 style="text-align:center">Quel business veux-tu créer ?</h2>
+      <p style="text-align:center">Décris ton idée en quelques mots</p>
+      <textarea id="ideaStart" placeholder="Ex : Food truck grillades, salon de coiffure, boulangerie artisanale..."></textarea>
+      <button class="btn btn-primary" onclick="startWizard()">Construire mon projet →</button>
+      <div class="badges"><span>Rapide</span><span>Simple</span><span>100% adapté à la Guadeloupe</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2 class="title">Ce que tu obtiens</h2>
+    <div class="grid4">
+      <div class="benefit"><div class="icon">📊</div><b>Étude de marché locale</b><p class="small">Données et analyses à jour</p></div>
+      <div class="benefit"><div class="icon">🧮</div><b>Prévisions financières</b><p class="small">Calculs fiables et personnalisés</p></div>
+      <div class="benefit"><div class="icon">📁</div><b>Dossier complet (PDF)</b><p class="small">Prêt à présenter à des partenaires</p></div>
+      <div class="benefit"><div class="icon">🚀</div><b>Accompagnement pas à pas</b><p class="small">Des conseils pour avancer sereinement</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:#f8fbf9">
+  <div class="wrap">
+    <h2 class="title">Choisis ton offre</h2>
+    <div class="pricing">
+      <div class="offer">
+        <b>OFFRE BASIQUE</b><div class="price">29,90 €</div>
+        <p>✓ Étude de marché</p><p>✓ Prévisions financières</p><p>✓ Dossier PDF complet</p>
+        <button class="btn btn-ghost">Choisir cette offre</button>
+      </div>
+      <div class="offer reco"><span class="ribbon">RECOMMANDÉ</span>
+        <b>OFFRE AVANCÉE</b><div class="price">49,90 €</div>
+        <p>✓ Tout de l’offre Basique</p><p>✓ Analyse approfondie</p><p>✓ Conseils personnalisés</p><p>✓ Plan d’actions détaillé</p>
+        <button class="btn btn-primary">Choisir cette offre</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="wizard">
+  <div class="wrap">
+    <div class="brand">
+      <img src="assets/logo.jpeg" alt="Guadeloupe">
+      <div><div class="brand-name">GWADA<span class="g">PROJET</span></div><div class="tag">Parle-nous de ton projet</div></div>
+    </div>
+    <div class="progress" id="progress"></div>
+
+    <div class="card">
+      <div class="q active" data-step="1">
+        <h2>1. Quelle activité souhaites-tu développer ?</h2>
+        <div class="choice-grid" data-name="activity">
+          <div class="choice">Restauration / Food truck</div><div class="choice">Commerce et vente</div><div class="choice">Boulangerie / Pâtisserie</div>
+          <div class="choice">Beauté et bien-être</div><div class="choice">Services à la personne</div><div class="choice">Digital / services en ligne</div>
+          <div class="choice">Immobilier / location</div><div class="choice">Autre activité</div>
+        </div>
+        <label>Précise ton idée</label><textarea id="activityText"></textarea>
+      </div>
+
+      <div class="q" data-step="2">
+        <h2>2. Où souhaites-tu développer ton projet ?</h2>
+        <label>Commune</label>
+        <select id="commune"><option>Le Gosier</option><option>Sainte-Anne</option><option>Saint-François</option><option>Les Abymes</option><option>Baie-Mahault</option><option>Basse-Terre</option><option>Le Lamentin</option><option>Autre</option></select>
+        <label>Type d’implantation</label>
+        <select id="implantation"><option>Local commercial</option><option>À domicile</option><option>Camion / Food truck</option><option>Activité mobile</option><option>Autre</option></select>
+        <label>Loyer ou charge mensuelle envisagée (€)</label><input id="rent" type="number" value="1200">
+      </div>
+
+      <div class="q" data-step="3">
+        <h2>3. Quel est ton budget ?</h2>
+        <div class="row">
+          <div><label>Apport disponible aujourd’hui (€)</label><input id="cash" type="number" value="5000"></div>
+          <div><label>Montant maximum que tu es prêt à investir (€)</label><input id="maxInvest" type="number" value="30000"></div>
+        </div>
+        <label>Financement complémentaire</label>
+        <select id="finance"><option>Non, je finance seul mon projet</option><option>Prêt bancaire</option><option>Aides / subventions</option><option>Investisseurs / associés</option></select>
+        <label>Dépenses déjà engagées (€)</label><input id="spent" type="number" value="0">
+        <div class="row">
+          <div><label>Statut envisagé</label>
+            <select id="legalStatus">
+              <option>Je ne sais pas encore</option>
+              <option>Micro-entreprise</option>
+              <option>Entreprise individuelle au réel</option>
+              <option>SASU / SAS</option>
+              <option>EURL / SARL</option>
+            </select>
+          </div>
+          <div><label>TVA</label>
+            <select id="vatMode">
+              <option>À déterminer</option>
+              <option>Assujetti à la TVA</option>
+              <option>Franchise / non collectée</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="q" data-step="4">
+        <h2>4. Comment souhaites-tu t’organiser ?</h2>
+        <label>Mode d’organisation au démarrage</label>
+        <select id="org"><option>Je travaille seul(e)</option><option>Avec un associé / des associés</option><option>Avec des salariés</option></select>
+        <label>Nombre de personnes au démarrage, toi inclus(e)</label><input id="people" type="number" min="1" value="1">
+        <label>Embauches prévues dans les 12 premiers mois</label><select id="hire"><option>Non, pas dans l’immédiat</option><option>Oui, 1 personne</option><option>Oui, 2 personnes</option><option>Oui, 3 personnes ou plus</option></select>
+        <div class="row">
+          <div>
+            <label>Priorité principale</label>
+            <select id="priority">
+              <option>Le plus simple à gérer</option>
+              <option>Déduire mes charges réelles</option>
+              <option>Préparer une forte croissance</option>
+              <option>Accueillir des associés / investisseurs plus tard</option>
+            </select>
+          </div>
+          <div>
+            <label>Comptes-tu réinvestir une partie des bénéfices ?</label>
+            <select id="reinvest">
+              <option>Oui</option>
+              <option>Non</option>
+              <option>Je ne sais pas encore</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="q" data-step="5">
+        <h2>5. Quels sont tes objectifs ?</h2>
+        <div class="row">
+          <div><label>Revenu net mensuel souhaité (€)</label><input id="income" type="number" value="2000"></div>
+          <div><label>Heures par semaine consacrées au projet</label><input id="hours" type="number" value="35"></div>
+        </div>
+        <div class="row">
+          <div><label>Panier moyen envisagé (€)</label><input id="basketInput" type="number" step="0.5" value="10"></div>
+          <div><label>Jours d'ouverture par mois</label><input id="openDays" type="number" value="26"></div>
+        </div>
+        <div class="row">
+          <div><label>Coût matière estimé (% du CA)</label><input id="foodCostPct" type="number" value="32"></div>
+          <div><label>Autres frais variables (% du CA)</label><input id="varCostPct" type="number" value="4"></div>
+        </div>
+        <label>Activité</label><select id="mainActivity"><option>Activité principale</option><option>Activité complémentaire</option></select>
+        <label>Date de démarrage souhaitée</label><input id="launch" type="month">
+        <p class="small">Ces hypothèses sont modifiables. La V2 les utilise pour calculer le seuil de rentabilité et trois scénarios.</p>
+      </div>
+
+      <div class="q" data-step="6">
+        <h2>6. Résumé de ton projet</h2>
+        <div id="summary"></div>
+        <p class="small">Vérifie ces informations avant de lancer ton diagnostic gratuit.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="prevStep()">← Précédent</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Suivant →</button>
+      </div>
+      <p class="small" style="margin-top:18px">🔒 100% confidentiel — prototype de démonstration, aucune donnée n’est envoyée à un serveur.</p>
+    </div>
+  </div>
+</section>
+
+<section id="diagnostic">
+  <div class="wrap">
+    <div class="brand">
+      <img src="assets/logo.jpeg" alt="Guadeloupe"><div><div class="brand-name">GWADA<span class="g">PROJET</span></div><div class="tag">Ton diagnostic gratuit est prêt !</div></div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <div class="score">
+        <div class="score-circle"><div class="score-value" id="scoreValue">82</div></div>
+        <div><h2 id="scoreTitle">Très bon potentiel</h2><p id="scoreText">Ton projet est cohérent et peut être approfondi.</p></div>
+      </div>
+
+      <div class="metrics free-preview-metrics">
+        <div class="metric">CA mensuel indicatif<strong id="mCA">—</strong></div>
+        <div class="metric">Panier moyen testé<strong id="mBasket">—</strong></div>
+        <div class="metric">Priorité n°1<strong style="font-size:22px">Valider le marché</strong></div>
+      </div>
+
+      <!-- Valeurs calculées conservées pour le moteur, mais jamais affichées dans l'aperçu gratuit. -->
+      <div style="display:none" aria-hidden="true">
+        <span id="mClients">—</span><span id="mMargin">—</span><span id="mBreak">—</span>
+        <span id="mInvest">—</span><span id="mCharges">—</span><ol id="reco"></ol>
+      </div>
+
+      <div class="free-value-card">
+        <h3>Ce que ton diagnostic gratuit confirme</h3>
+        <p>Tu obtiens une première lecture du potentiel de ton projet et un objectif de chiffre d’affaires indicatif. Les calculs détaillés, le seuil de rentabilité, la trésorerie, les scénarios et le plan d’action restent réservés aux offres payantes.</p>
+      </div>
+
+      <div class="locked-preview">
+        <div><b>🔒 Seuil de rentabilité</b><span>Calcul détaillé + clients/jour</span></div>
+        <div><b>🔒 Prévisionnel</b><span>3 scénarios financiers</span></div>
+        <div><b>🔒 Plan d’action</b><span>Priorités personnalisées</span></div>
+        <div><b>🔒 Trésorerie</b><span>Besoin et réserve de sécurité</span></div>
+      </div>
+
+      
+      <div class="fin-panel entitlement-basic" style="display:none">
+        <h2 style="margin-top:0">Modèle financier — hypothèses modifiables</h2>
+        <div class="fin-grid">
+          <div><label>Panier moyen (€)</label><input id="fBasket" type="number" step="0.5" oninput="recalcFinancials()"></div>
+          <div><label>Jours d'ouverture / mois</label><input id="fDays" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Coût matières (% du CA)</label><input id="fFood" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Autres frais variables (% du CA)</label><input id="fVar" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Loyer / charge local (€)</label><input id="fRent" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Autres charges fixes (€)</label><input id="fFixed" type="number" value="650" oninput="recalcFinancials()"></div>
+          <div><label>Coût mensuel salariés (€)</label><input id="fStaff" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Rémunération cible dirigeant (€)</label><input id="fOwner" type="number" oninput="recalcFinancials()"></div>
+          <div><label>Investissement initial (€)</label><input id="fInitial" type="number" oninput="recalcFinancials()"></div>
+        </div>
+
+        <div class="scenarios">
+          <div class="scenario"><b>Prudent</b><strong id="sPrudentCA">—</strong><span>CA / mois</span><p id="sPrudentProfit">—</p></div>
+          <div class="scenario realistic"><b>Réaliste</b><strong id="sRealCA">—</strong><span>CA / mois</span><p id="sRealProfit">—</p></div>
+          <div class="scenario"><b>Ambitieux</b><strong id="sHighCA">—</strong><span>CA / mois</span><p id="sHighProfit">—</p></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Indicateur</th><th>Valeur estimée</th></tr></thead>
+            <tbody>
+              <tr><td>Seuil de rentabilité mensuel</td><td id="tBreakEven">—</td></tr>
+              <tr><td>Clients/jour au seuil</td><td id="tClientsDay">—</td></tr>
+              <tr><td>CA conseillé (marge de sécurité 15%)</td><td id="tSafeCA">—</td></tr>
+              <tr><td>Trésorerie de sécurité conseillée (3 mois)</td><td id="tCashBuffer">—</td></tr>
+              <tr><td>Délai indicatif de récupération de l'investissement</td><td id="tPayback">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Prototype : ces calculs servent à tester l'expérience utilisateur. Avant commercialisation, il faudra intégrer les cotisations, fiscalité, TVA applicable, saisonnalité et règles propres au statut juridique choisi.</p>
+      </div>
+
+
+      
+      <div class="fin-panel entitlement-basic" style="display:none">
+        <h2 style="margin-top:0">Quel statut semble le plus adapté ?</h2>
+        <p>GWADAPROJET compare quatre options à partir de ton CA prévisionnel, tes charges, ton organisation et tes objectifs. C’est une orientation, pas un conseil juridique ou comptable.</p>
+        <div class="status-grid" id="statusGrid"></div>
+        <div class="legal-warning" id="legalWarning"></div>
+      </div>
+
+<div class="fin-panel entitlement-basic" style="display:none">
+        <h2 style="margin-top:0">Démarches & règles — Guadeloupe</h2>
+        <div id="regulatoryChecklist"></div>
+        <p class="small">Cette partie sert de guide. Les formalités et taux devront être vérifiés à chaque mise à jour réglementaire.</p>
+      </div>
+
+<div class="diag-grid locked paywall" id="premiumAnalysis">
+        <div class="metric"><h3>🔒 Prévisionnel 12 mois</h3><p>Scénarios prudent / réaliste / ambitieux</p></div>
+        <div class="metric"><h3>🔒 Plan d’action</h3><p>Étapes détaillées, priorisées et adaptées</p></div>
+        <div class="metric"><h3>🔒 Business plan PDF</h3><p>Dossier prêt pour banque ou partenaire</p></div>
+      </div>
+
+      <div class="fin-panel" id="premiumContent" style="display:none">
+        <h2 style="margin-top:0">Ton plan complet est débloqué ✓</h2>
+        <p id="premiumIntro">Voici ton tableau de pilotage personnalisé. Remplace progressivement les estimations par tes devis et données réelles.</p>
+        <div id="premiumDashboard" class="premium-dashboard"></div>
+        <div id="premiumActionPlan"></div>
+        <div id="advancedTools" style="display:none;margin-top:18px" class="premium-block">
+          <h3>Business plan complet</h3>
+          <p>Ton offre Avancée inclut le dossier personnalisé imprimable / enregistrable en PDF.</p>
+          <button class="btn" style="background:#6c3bd1;color:#fff" onclick="secureGenerateBusinessPlan()">Créer mon business plan PDF</button>
+        </div>
+      </div>
+
+      <div class="cta-grid">
+        <div class="cta" id="basicCta">
+          <h3 id="basicCtaTitle">Débloquer mon plan complet</h3><div class="price">29,90 €</div>
+          <p id="basicCtaText">Analyse détaillée + seuil + scénarios + plan d’action</p>
+          <button id="basicCtaBtn" class="btn btn-primary" onclick="handlePlanAction('basic')">Débloquer mon plan complet</button>
+        </div>
+        <div class="cta premium" id="advancedCta">
+          <h3 id="advancedCtaTitle">Business plan + prévisionnel</h3><div class="price">49,90 €</div>
+          <p id="advancedCtaText">Tout le 29,90 € + business plan premium + PDF</p>
+          <button id="advancedCtaBtn" class="btn" style="background:#6c3bd1;color:#fff" onclick="handlePlanAction('advanced')">Obtenir mon business plan complet</button>
+        </div>
+      </div>
+      <p class="small" style="margin-top:18px">⚠️ Les résultats restent indicatifs. V15 vérifie les paiements Stripe côté serveur et protège l’aperçu gratuit et génère un vrai fichier PDF local et partageable sans passer par l’impression iOS et conserve une comparaison indicative Micro / EI / SASU / EURL et conserve la couche réglementaire Guadeloupe fondée sur des sources officielles consultées en août 2026 ; un moteur de calcul validé et une veille réglementaire restent nécessaires avant commercialisation.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+let step=1;
+const labels=["Activité","Localisation","Budget","Organisation","Objectifs","Résumé"];
+const state={};
+function startWizard(){
+  document.getElementById("home").style.display="none";
+  document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+  document.getElementById("wizard").style.display="block";
+  document.getElementById("activityText").value=document.getElementById("ideaStart").value;
+  renderProgress();
+  window.scrollTo(0,0);
+}
+function renderProgress(){
+  const p=document.getElementById("progress"); p.innerHTML="";
+  labels.forEach((l,i)=>{
+    const d=document.createElement("div");
+    d.className="step-dot "+((i+1)<step?"done":(i+1)==step?"active":"");
+    d.textContent=(i+1)+". "+l; p.appendChild(d);
+  });
+}
+document.querySelectorAll(".choice-grid").forEach(grid=>{
+  grid.querySelectorAll(".choice").forEach(c=>{
+    c.onclick=()=>{grid.querySelectorAll(".choice").forEach(x=>x.classList.remove("active"));c.classList.add("active");state.activity=c.textContent;}
+  })
+});
+function collect(){
+  state.activityText=document.getElementById("activityText").value;
+  state.commune=document.getElementById("commune").value;
+  state.implantation=document.getElementById("implantation").value;
+  state.rent=+document.getElementById("rent").value||0;
+  state.cash=+document.getElementById("cash").value||0;
+  state.maxInvest=+document.getElementById("maxInvest").value||0;
+  state.finance=document.getElementById("finance").value;
+  state.spent=+document.getElementById("spent").value||0;
+  state.org=document.getElementById("org").value;
+  state.people=+document.getElementById("people").value||1;
+  state.hire=document.getElementById("hire").value;
+  state.income=+document.getElementById("income").value||0;
+  state.hours=+document.getElementById("hours").value||0;
+  state.mainActivity=document.getElementById("mainActivity").value;
+  state.launch=document.getElementById("launch").value;
+  state.basketInput=+document.getElementById("basketInput").value||10;
+  state.openDays=+document.getElementById("openDays").value||26;
+  state.foodCostPct=+document.getElementById("foodCostPct").value||32;
+  state.varCostPct=+document.getElementById("varCostPct").value||4;
+  state.legalStatus=document.getElementById("legalStatus").value;
+  state.vatMode=document.getElementById("vatMode").value;
+  state.priority=document.getElementById("priority").value;
+  state.reinvest=document.getElementById("reinvest").value;
+}
+function renderSummary(){
+  collect();
+  document.getElementById("summary").innerHTML=`
+    <div class="grid4" style="grid-template-columns:repeat(2,1fr)">
+      <div class="metric"><b>Activité</b><p>${state.activity||"Non précisée"} — ${state.activityText||""}</p></div>
+      <div class="metric"><b>Localisation</b><p>${state.commune} — ${state.implantation}</p></div>
+      <div class="metric"><b>Budget</b><p>Apport ${fmt(state.cash)} · Investissement max ${fmt(state.maxInvest)}</p></div>
+      <div class="metric"><b>Organisation</b><p>${state.org} · ${state.people} personne(s)</p></div>
+      <div class="metric"><b>Objectif</b><p>${fmt(state.income)}/mois net · ${state.hours} h/semaine</p></div>
+      <div class="metric"><b>Financement</b><p>${state.finance}</p></div>
+    </div>`;
+}
+function nextStep(){
+  collect();
+  if(step<6){
+    document.querySelector(`.q[data-step="${step}"]`).classList.remove("active");
+    step++;
+    document.querySelector(`.q[data-step="${step}"]`).classList.add("active");
+    if(step===6) renderSummary();
+    renderProgress();
+    document.getElementById("nextBtn").textContent=step===6?"Lancer mon diagnostic gratuit ✨":"Suivant →";
+    window.scrollTo(0,0);
+  }else{
+    runDiagnostic();
+  }
+}
+function prevStep(){
+  if(step>1){
+    document.querySelector(`.q[data-step="${step}"]`).classList.remove("active");
+    step--; document.querySelector(`.q[data-step="${step}"]`).classList.add("active");
+    renderProgress(); document.getElementById("nextBtn").textContent="Suivant →"; window.scrollTo(0,0);
+  }
+}
+function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0)}
+function recalcFinancials(){
+  const basket=+document.getElementById("fBasket").value||10;
+  const days=+document.getElementById("fDays").value||26;
+  const food=(+document.getElementById("fFood").value||32)/100;
+  const vari=(+document.getElementById("fVar").value||4)/100;
+  const rent=+document.getElementById("fRent").value||0;
+  const fixed=+document.getElementById("fFixed").value||650;
+  const staff=+document.getElementById("fStaff").value||0;
+  const owner=+document.getElementById("fOwner").value||0;
+  const initial=+document.getElementById("fInitial").value||0;
+
+  const variableRate=Math.min(.80, food+vari);
+  const fixedTotal=rent+fixed+staff+owner;
+  const contribution=Math.max(.10,1-variableRate);
+  const breakEven=fixedTotal/contribution;
+  const safeCA=breakEven*1.15;
+  const clientsDay=Math.ceil((breakEven/basket)/days);
+  const cashBuffer=(rent+fixed+staff)*3;
+
+  const prudent=breakEven*.90;
+  const realistic=safeCA;
+  const high=safeCA*1.30;
+
+  function profit(ca){ return ca*(1-variableRate)-(rent+fixed+staff+owner); }
+  function txtProfit(ca){
+    const p=profit(ca);
+    const cls=p>=0?"kpi-positive":"kpi-negative";
+    return `<span class="${cls}">${p>=0?"+":""}${fmt(p)} après charges & rémunération cible</span>`;
+  }
+
+  document.getElementById("sPrudentCA").textContent=fmt(prudent);
+  document.getElementById("sRealCA").textContent=fmt(realistic);
+  document.getElementById("sHighCA").textContent=fmt(high);
+  document.getElementById("sPrudentProfit").innerHTML=txtProfit(prudent);
+  document.getElementById("sRealProfit").innerHTML=txtProfit(realistic);
+  document.getElementById("sHighProfit").innerHTML=txtProfit(high);
+
+  document.getElementById("tBreakEven").textContent=fmt(breakEven);
+  document.getElementById("tClientsDay").textContent=clientsDay+" clients/jour";
+  document.getElementById("tSafeCA").textContent=fmt(safeCA);
+  document.getElementById("tCashBuffer").textContent=fmt(cashBuffer);
+
+  const monthlyFreeCash=Math.max(1, profit(high)+owner);
+  const payback=initial/monthlyFreeCash;
+  document.getElementById("tPayback").textContent=payback>36?"> 36 mois":Math.max(1,Math.ceil(payback))+" mois";
+}
+
+
+function legalStatusComparison(annualCA, variableRate){
+  const isSale=/restauration|food|crêpe|glace|commerce|vente|boulanger|pâtiss/i.test((state.activity||"")+" "+state.activityText);
+  const microThreshold=isSale?188700:77700;
+  const expensesHigh=(variableRate>=.35 || state.rent>=1500 || state.people>1);
+  const wantsGrowth=/croissance|associés|investisseurs/i.test(state.priority||"");
+  const wantsSimple=/simple/i.test(state.priority||"");
+  const wantsDeduct=/Déduire/i.test(state.priority||"");
+  const multiplePeople=(state.people||1)>1;
+
+  let scores={
+    "Micro-entreprise":55,
+    "EI au réel":55,
+    "SASU":50,
+    "EURL":50
+  };
+
+  if(wantsSimple) scores["Micro-entreprise"]+=25;
+  if(annualCA <= microThreshold*.65) scores["Micro-entreprise"]+=10;
+  if(annualCA > microThreshold) scores["Micro-entreprise"]-=50;
+  if(expensesHigh) scores["Micro-entreprise"]-=18;
+  if(multiplePeople) scores["Micro-entreprise"]-=8;
+
+  if(wantsDeduct || expensesHigh) scores["EI au réel"]+=20;
+  if(!multiplePeople) scores["EI au réel"]+=6;
+  if(wantsSimple) scores["EI au réel"]+=4;
+
+  if(wantsGrowth) scores["SASU"]+=25;
+  if(state.reinvest==="Oui") scores["SASU"]+=10;
+  if(annualCA>100000) scores["SASU"]+=7;
+  if(wantsSimple) scores["SASU"]-=10;
+
+  if(wantsDeduct || expensesHigh) scores["EURL"]+=15;
+  if(state.reinvest==="Oui") scores["EURL"]+=8;
+  if(annualCA>80000) scores["EURL"]+=7;
+  if(wantsSimple) scores["EURL"]-=8;
+
+  Object.keys(scores).forEach(k=>scores[k]=Math.max(10,Math.min(95,scores[k])));
+
+  const info={
+    "Micro-entreprise":{
+      plus:["Formalités et gestion allégées","Cotisations calculées sur le chiffre d’affaires","Bonne option pour tester une petite activité"],
+      minus:["Charges réelles non déduites du calcul micro","Plafond de chiffre d’affaires à respecter","Moins adaptée si l’activité supporte beaucoup de frais"]
+    },
+    "EI au réel":{
+      plus:["Entreprise individuelle, sans créer de société","Charges réelles prises en compte au régime réel","Patrimoines professionnel et personnel séparés par principe"],
+      minus:["Comptabilité plus complète que la micro","Cotisations calculées selon le régime des indépendants","Moins naturelle si des investisseurs doivent entrer au capital"]
+    },
+    "SASU":{
+      plus:["Société unipersonnelle évolutive vers SAS","Structure adaptée à l’ouverture du capital","Cadre souvent choisi pour des projets de croissance"],
+      minus:["Création et comptabilité plus formelles","Coût administratif supérieur à la micro","La rémunération du président entraîne un régime social spécifique"]
+    },
+    "EURL":{
+      plus:["Société unipersonnelle encadrée","Charges professionnelles comptabilisées au réel","Peut convenir à un dirigeant seul avec activité durable"],
+      minus:["Formalités et comptabilité de société","Gérant associé unique généralement travailleur non salarié","Moins souple qu’une SASU pour faire entrer des investisseurs"]
+    }
+  };
+
+  const sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const best=sorted[0][0];
+
+  const grid=document.getElementById("statusGrid");
+  grid.innerHTML=sorted.map(([name,score])=>{
+    const i=info[name];
+    return `<div class="status-card ${name===best?"best":""}">
+      ${name===best?'<span class="best-label">MEILLEUR MATCH</span>':""}
+      <h3>${name}</h3>
+      <b>${score}/100</b>
+      <div class="scorebar"><span style="width:${score}%"></span></div>
+      <b>Atouts</b><ul>${i.plus.map(x=>`<li>${x}</li>`).join("")}</ul>
+      <b>Points de vigilance</b><ul>${i.minus.map(x=>`<li>${x}</li>`).join("")}</ul>
+    </div>`;
+  }).join("");
+
+  let warn=`Orientation actuelle : <b>${best}</b>. `;
+  if(annualCA>microThreshold){
+    warn+=`Le CA annuel estimé (${fmt(annualCA)}) dépasse le seuil micro de référence retenu pour cette catégorie (${fmt(microThreshold)}). `;
+  } else {
+    warn+=`Le seuil micro de référence retenu pour cette catégorie est ${fmt(microThreshold)} de CA annuel HT. `;
+  }
+  warn+="Avant création, fais valider le choix final par un professionnel si les montants, la rémunération, la TVA ou la protection sociale ont un impact important.";
+  document.getElementById("legalWarning").innerHTML=warn;
+  return {best,scores,microThreshold};
+}
+
+function runDiagnostic(){
+  collect();
+  const basket = state.basketInput || (/restauration|food/i.test((state.activity||"")+" "+state.activityText) ? 10 : 35);
+  const peopleCost = Math.max(0,state.people-1)*2300;
+  const fixedBase = state.rent + 650 + peopleCost;
+  const ownerTarget = state.income;
+  const variableRate = Math.min(.80,(state.foodCostPct+state.varCostPct)/100);
+  const contribution = Math.max(.10,1-variableRate);
+  const grossNeeded = Math.max(2500, (fixedBase + ownerTarget) / contribution);
+  const clients = Math.ceil(grossNeeded/basket);
+  const initial = Math.max(3500, Math.min(state.maxInvest||30000, (state.rent*3)+7000+(state.people-1)*2500));
+  const cashRatio = state.maxInvest ? state.cash/state.maxInvest : .2;
+
+  let score=60;
+  if(state.maxInvest>=initial) score+=12;
+  if(cashRatio>=.25) score+=7;
+  if(state.rent<=1500) score+=6;
+  if(state.people<=2) score+=4;
+  if(variableRate<=.38) score+=4;
+  score=Math.max(40,Math.min(93,score));
+
+  document.getElementById("scoreValue").textContent=score;
+  document.getElementById("scoreTitle").textContent=score>=80?"Très bon potentiel":score>=65?"Potentiel intéressant":"Projet à sécuriser";
+  document.getElementById("scoreText").textContent=score>=80?"Ton projet semble cohérent sur la base des informations fournies.":"Quelques paramètres doivent être renforcés avant de te lancer.";
+
+  document.getElementById("mCA").textContent=fmt(grossNeeded);
+  document.getElementById("mClients").textContent=clients+" clients";
+  document.getElementById("mBasket").textContent=fmt(basket);
+  document.getElementById("mMargin").textContent=Math.round((1-variableRate)*100)+" % marge sur coûts variables";
+  document.getElementById("mBreak").textContent=(score>=80?"3 à 6":"6 à 12")+" mois";
+  document.getElementById("mInvest").textContent=fmt(initial);
+  document.getElementById("mCharges").textContent=fmt(fixedBase + grossNeeded*variableRate);
+
+  const recos=[];
+  if(state.rent>1500) recos.push("Négocier le loyer ou comparer au moins deux emplacements moins chers.");
+  else recos.push("Valider 2 à 3 emplacements et mesurer le passage réel.");
+  if(cashRatio<.25) recos.push("Renforcer l'apport ou conserver une réserve de trésorerie séparée.");
+  else recos.push("Garder au moins 2 à 3 mois de trésorerie de sécurité.");
+  if(state.people>2) recos.push("Tester le volume de ventes avant de supporter toute la masse salariale prévue.");
+  else recos.push("Tester ton panier moyen et tes prix avant toute embauche.");
+  document.getElementById("reco").innerHTML=recos.slice(0,3).map(x=>`<li>${x}</li>`).join("");
+
+  // Inject values into editable financial model
+  document.getElementById("fBasket").value=basket;
+  document.getElementById("fDays").value=state.openDays||26;
+  document.getElementById("fFood").value=state.foodCostPct||32;
+  document.getElementById("fVar").value=state.varCostPct||4;
+  document.getElementById("fRent").value=state.rent||0;
+  document.getElementById("fFixed").value=650;
+  document.getElementById("fStaff").value=peopleCost;
+  document.getElementById("fOwner").value=ownerTarget;
+  document.getElementById("fInitial").value=initial;
+  recalcFinancials();
+  legalStatusComparison(grossNeeded*12, variableRate);
+
+  const isFood=/restauration|food|crêpe|glace|boulanger|pâtiss/i.test((state.activity||"")+" "+state.activityText);
+  const micro=state.legalStatus==="Micro-entreprise";
+  let rules=[];
+  rules.push("<b>Création :</b> formalités d’entreprise via le Guichet unique.");
+  rules.push("<b>Fiscalité DOM :</b> en Guadeloupe, les principaux taux de TVA sont 8,5 % (normal) et 2,1 % (réduit), selon la nature de l’opération.");
+  if(micro){
+    rules.push("<b>Micro-entreprise :</b> pour une activité de vente de marchandises / denrées à emporter ou consommer, le taux micro-social de référence indiqué par Service-Public est de 12,3 % du CA HT ; le logiciel devra contrôler le taux en vigueur au jour du calcul.");
+    rules.push("<b>Attention :</b> le régime micro calcule les cotisations sur le chiffre d’affaires et ne déduit pas les charges réelles comme un régime au réel.");
+  } else {
+    rules.push("<b>Statut :</b> lancer une comparaison personnalisée micro / EI / société avant de recommander une structure.");
+  }
+  if(isFood){
+    rules.push("<b>Hygiène alimentaire :</b> la restauration rapide et la vente à emporter sont concernées par la formation obligatoire en hygiène alimentaire ; au moins une personne de l’établissement doit satisfaire à cette obligation.");
+    rules.push("<b>Local :</b> vérifier hygiène, stockage, chaîne du froid, accessibilité et règles ERP selon la configuration.");
+    rules.push("<b>Boissons alcoolisées :</b> si le projet en prévoit, ajouter le parcours licence / permis / déclaration adapté.");
+  }
+  rules.push("<b>CFE :</b> prévoir la cotisation foncière des entreprises lorsque l’activité y est assujettie.");
+  rules.push("<b>Aides :</b> tester l’éligibilité à l’ACRE et aux dispositifs locaux au moment de la création.");
+  document.getElementById("regulatoryChecklist").innerHTML="<ul class='locklist'>"+rules.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
+
+  document.getElementById("wizard").style.display="none";
+  document.getElementById("diagnostic").style.display="block";
+  window.scrollTo(0,0);
+}
+
+function generateBusinessPlan(){
+  collect();
+
+  const basket=+document.getElementById("fBasket").value||state.basketInput||10;
+  const days=+document.getElementById("fDays").value||state.openDays||26;
+  const food=(+document.getElementById("fFood").value||state.foodCostPct||32)/100;
+  const vari=(+document.getElementById("fVar").value||state.varCostPct||4)/100;
+  const rent=+document.getElementById("fRent").value||state.rent||0;
+  const fixed=+document.getElementById("fFixed").value||650;
+  const staff=+document.getElementById("fStaff").value||Math.max(0,state.people-1)*2300;
+  const owner=+document.getElementById("fOwner").value||state.income||0;
+  const initial=+document.getElementById("fInitial").value||0;
+  const variableRate=Math.min(.80,food+vari);
+  const contribution=Math.max(.10,1-variableRate);
+  const breakEven=(rent+fixed+staff+owner)/contribution;
+  const safeCA=breakEven*1.15;
+  const clientsDay=Math.ceil((breakEven/basket)/days);
+  const prudent=breakEven*.90, realistic=safeCA, high=safeCA*1.30;
+
+  const activity=(state.activity||"Projet entrepreneurial")+(state.activityText?(" - "+state.activityText):"");
+  document.getElementById("bpCoverProject").textContent=activity;
+  document.getElementById("bpCoverLocation").textContent=state.commune+" - Guadeloupe";
+
+  document.getElementById("bpExecutive").textContent=
+    `Le projet porte sur ${activity.toLowerCase()} à ${state.commune}. Le porteur prévoit une implantation de type ${state.implantation.toLowerCase()}, un investissement maximal de ${fmt(state.maxInvest)} et vise une rémunération personnelle d'environ ${fmt(state.income)} par mois. Le modèle financier estime un seuil de rentabilité d'environ ${fmt(breakEven)} de chiffre d'affaires mensuel.`;
+
+  document.getElementById("bpProfile").innerHTML=`<table>
+    <tr><th>Activité</th><td>${activity}</td></tr>
+    <tr><th>Commune</th><td>${state.commune}</td></tr>
+    <tr><th>Implantation</th><td>${state.implantation}</td></tr>
+    <tr><th>Apport disponible</th><td>${fmt(state.cash)}</td></tr>
+    <tr><th>Investissement maximal</th><td>${fmt(state.maxInvest)}</td></tr>
+    <tr><th>Organisation</th><td>${state.org} - ${state.people} personne(s)</td></tr>
+    <tr><th>Revenu net souhaité</th><td>${fmt(state.income)} / mois</td></tr>
+    <tr><th>Statut envisagé</th><td>${state.legalStatus}</td></tr>
+  </table>`;
+
+  document.getElementById("bpOffer").textContent=
+    `L'offre exacte devra être détaillée et testée auprès de la clientèle locale. Le diagnostic retient actuellement un panier moyen de ${fmt(basket)}. L'objectif commercial est de vérifier le trafic réel, la sensibilité au prix, la saisonnalité et les produits ou services les plus rentables.`;
+
+  document.getElementById("bpAssumptions").innerHTML=`<table>
+    <tr><th>Hypothèse</th><th>Valeur</th></tr>
+    <tr><td>Panier moyen</td><td>${fmt(basket)}</td></tr>
+    <tr><td>Jours d'ouverture / mois</td><td>${days}</td></tr>
+    <tr><td>Coût matières</td><td>${Math.round(food*100)} % du CA</td></tr>
+    <tr><td>Autres frais variables</td><td>${Math.round(vari*100)} % du CA</td></tr>
+    <tr><td>Loyer</td><td>${fmt(rent)} / mois</td></tr>
+    <tr><td>Autres charges fixes</td><td>${fmt(fixed)} / mois</td></tr>
+    <tr><td>Personnel</td><td>${fmt(staff)} / mois</td></tr>
+  </table>`;
+
+  function result(ca){return ca*(1-variableRate)-(rent+fixed+staff+owner)}
+  document.getElementById("bpScenarios").innerHTML=`<table>
+    <tr><th>Scénario</th><th>CA mensuel</th><th>CA annuel</th><th>Résultat après charges et rémunération cible</th></tr>
+    <tr><td>Prudent</td><td>${fmt(prudent)}</td><td>${fmt(prudent*12)}</td><td>${fmt(result(prudent))}</td></tr>
+    <tr><td>Réaliste</td><td>${fmt(realistic)}</td><td>${fmt(realistic*12)}</td><td>${fmt(result(realistic))}</td></tr>
+    <tr><td>Ambitieux</td><td>${fmt(high)}</td><td>${fmt(high*12)}</td><td>${fmt(result(high))}</td></tr>
+  </table>`;
+
+  document.getElementById("bpBreakEven").textContent=
+    `Le seuil de rentabilité mensuel estimé est de ${fmt(breakEven)}. Avec un panier moyen de ${fmt(basket)} et ${days} jours d'ouverture par mois, cela représente environ ${clientsDay} clients par jour. GWADAPROJET recommande de viser environ ${fmt(safeCA)} par mois afin de conserver une marge de sécurité de 15 %.`;
+
+  document.getElementById("bpFunding").textContent=
+    `L'investissement initial estimé par le prototype est de ${fmt(initial)}. L'apport déclaré est de ${fmt(state.cash)} et le financement envisagé est : ${state.finance}. Une réserve de trésorerie doit être conservée pour absorber les premiers mois d'exploitation et les écarts entre prévisions et ventes réelles.`;
+
+  const bestCard=document.querySelector(".status-card.best h3");
+  const best=bestCard?bestCard.textContent:state.legalStatus;
+  document.getElementById("bpLegal").textContent=
+    `L'orientation automatique actuelle privilégie : ${best}. Cette orientation est fondée sur les informations fournies, notamment le niveau de chiffre d'affaires, le poids des charges, l'organisation et les objectifs de croissance. Le choix final doit être validé au regard de la fiscalité, de la TVA et de la protection sociale.`;
+
+  document.getElementById("bpSteps").innerHTML=`<ul>
+    <li>Valider le statut et réaliser les formalités via le Guichet unique.</li>
+    <li>Vérifier les règles applicables au local et à l'activité.</li>
+    <li>Obtenir les assurances professionnelles nécessaires.</li>
+    <li>Pour les activités alimentaires, intégrer les obligations d'hygiène et de chaîne du froid.</li>
+    <li>Vérifier l'éligibilité aux aides disponibles au moment de la création.</li>
+  </ul>`;
+
+  document.getElementById("bpActions").innerHTML=`<ol>
+    <li>Tester le marché et le panier moyen.</li>
+    <li>Comparer plusieurs emplacements ou modes d'implantation.</li>
+    <li>Obtenir les devis réels et remplacer les hypothèses du prototype.</li>
+    <li>Valider le financement et préserver la trésorerie de sécurité.</li>
+    <li>Lancer une période pilote puis comparer les résultats réels au prévisionnel.</li>
+  </ol>`;
+
+  const risks=[];
+  if(rent>1500) risks.push("Loyer élevé par rapport à une phase de démarrage.");
+  if(state.cash < initial*.25) risks.push("Apport disponible faible par rapport au besoin initial estimé.");
+  if(state.people>2) risks.push("Masse salariale significative dès le lancement.");
+  if(variableRate>.40) risks.push("Poids important des coûts variables.");
+  risks.push("Saisonnalité et variation du trafic en Guadeloupe.");
+  risks.push("Écart possible entre panier moyen théorique et ventes réelles.");
+  document.getElementById("bpRisks").innerHTML="<ul>"+risks.map(x=>`<li>${x}</li>`).join("")+"</ul>";
+
+  document.body.classList.add("bp-mode");
+  const report=document.getElementById("printPlan");
+  if(report) report.scrollTop=0;
+}
+
+function closeBusinessPlanPreview(){
+  document.body.classList.remove("bp-mode");
+}
+
+
+/* V15 — Stripe serveur + tunnel anti-contournement + PDF premium, toujours généré localement sans dépendre de window.print() */
+function pdfWinAnsiBytes(str){
+  const map={
+    0x20AC:0x80,0x201A:0x82,0x0192:0x83,0x201E:0x84,0x2026:0x85,0x2020:0x86,0x2021:0x87,
+    0x02C6:0x88,0x2030:0x89,0x0160:0x8A,0x2039:0x8B,0x0152:0x8C,0x017D:0x8E,
+    0x2018:0x91,0x2019:0x92,0x201C:0x93,0x201D:0x94,0x2022:0x95,0x2013:0x96,0x2014:0x97,
+    0x02DC:0x98,0x2122:0x99,0x0161:0x9A,0x203A:0x9B,0x0153:0x9C,0x017E:0x9E,0x0178:0x9F
+  };
+  const out=[];
+  for(const ch of String(str)){
+    const cp=ch.codePointAt(0);
+    if(cp<=0xFF) out.push(cp);
+    else if(map[cp]!==undefined) out.push(map[cp]);
+    else out.push(0x3F);
+  }
+  return new Uint8Array(out);
+}
+function pdfByteLen(str){ return pdfWinAnsiBytes(str).length; }
+function pdfEscape(s){
+  return String(s).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");
+}
+function pdfFmtMoney(n){
+  const v=Math.round(Number(n)||0);
+  return v.toLocaleString("fr-FR")+" EUR";
+}
+function pdfClean(s){
+  return String(s??"")
+    .replace(/[✓✔]/g,"OK")
+    .replace(/[→←]/g,"-")
+    .replace(/\u00A0/g," ")
+    .replace(/[’]/g,"'")
+    .replace(/[“”]/g,'"');
+}
+function pdfWrap(text,maxChars){
+  const paras=pdfClean(text).split(/\n+/), lines=[];
+  for(const para of paras){
+    const words=para.trim().split(/\s+/).filter(Boolean);
+    if(!words.length){ lines.push(""); continue; }
+    let line="";
+    for(const w of words){
+      if(!line){ line=w; continue; }
+      if((line+" "+w).length<=maxChars) line+=" "+w;
+      else { lines.push(line); line=w; }
+    }
+    if(line) lines.push(line);
+  }
+  return lines;
+}
+function pdfMakeDocument(){
+  collect();
+  const basket=+document.getElementById("fBasket").value||state.basketInput||10;
+  const days=+document.getElementById("fDays").value||state.openDays||26;
+  const food=(+document.getElementById("fFood").value||state.foodCostPct||32)/100;
+  const vari=(+document.getElementById("fVar").value||state.varCostPct||4)/100;
+  const rent=+document.getElementById("fRent").value||state.rent||0;
+  const fixed=+document.getElementById("fFixed").value||650;
+  const staff=+document.getElementById("fStaff").value||Math.max(0,(state.people||1)-1)*2300;
+  const owner=+document.getElementById("fOwner").value||state.income||0;
+  const initial=+document.getElementById("fInitial").value||0;
+  const variableRate=Math.min(.80,food+vari), contribution=Math.max(.10,1-variableRate);
+  const fixedTotal=rent+fixed+staff+owner;
+  const breakEven=fixedTotal/contribution, safeCA=breakEven*1.15;
+  const prudent=breakEven*.90, realistic=safeCA, ambitious=safeCA*1.30;
+  const clientsDay=Math.ceil((breakEven/Math.max(1,basket))/Math.max(1,days));
+  const targetClients=Math.ceil((safeCA/Math.max(1,basket))/Math.max(1,days));
+  const reserve=Math.max(fixedTotal*3,initial*.15);
+  const activity=(state.activity||"Projet entrepreneurial")+(state.activityText?(" - "+state.activityText):"");
+  const commune=state.commune||"Guadeloupe";
+  const implantation=state.implantation||"A déterminer";
+  const result=ca=>ca*(1-variableRate)-fixedTotal;
+  const bestCard=document.querySelector(".status-card.best h3");
+  const best=bestCard?bestCard.textContent:(state.legalStatus||"A valider");
+
+  const sections=[
+    {title:"GWADAPROJET",subtitle:"Business plan personnalisé",
+      lines:[activity,commune+" - Guadeloupe","Document généré à partir du questionnaire GWADAPROJET"]},
+    {title:"1. Résumé exécutif",lines:[
+      `Le projet porte sur ${activity.toLowerCase()} à ${commune}. L'implantation envisagée est : ${implantation.toLowerCase()}. L'investissement maximal déclaré est de ${pdfFmtMoney(state.maxInvest)} et la rémunération personnelle visée est d'environ ${pdfFmtMoney(state.income)} par mois.`,
+      `Le modèle estime un seuil de rentabilité mensuel de ${pdfFmtMoney(breakEven)}. Avec une marge de sécurité de 15 %, le chiffre d'affaires cible est d'environ ${pdfFmtMoney(safeCA)} par mois.`
+    ]},
+    {title:"2. Profil du projet",table:[
+      ["Activité",activity],["Commune",commune],["Implantation",implantation],
+      ["Apport disponible",pdfFmtMoney(state.cash)],["Investissement maximal",pdfFmtMoney(state.maxInvest)],
+      ["Organisation",(state.org||"")+" - "+(state.people||1)+" personne(s)"],
+      ["Revenu net souhaité",pdfFmtMoney(state.income)+" / mois"],["Statut envisagé",state.legalStatus||"A déterminer"]
+    ]},
+    {title:"3. Offre et clientèle",lines:[
+      `L'offre devra être testée auprès de la clientèle locale. L'hypothèse actuelle retient un panier moyen de ${pdfFmtMoney(basket)}.`,
+      "Les points à mesurer en priorité sont le trafic réel, la sensibilité au prix, la saisonnalité, le taux de conversion et les produits ou services les plus rentables."
+    ]},
+    {title:"4. Hypothèses financières",table:[
+      ["Panier moyen",pdfFmtMoney(basket)],["Jours d'ouverture / mois",String(days)],
+      ["Coût matières",Math.round(food*100)+" % du CA"],["Autres frais variables",Math.round(vari*100)+" % du CA"],
+      ["Loyer",pdfFmtMoney(rent)+" / mois"],["Autres charges fixes",pdfFmtMoney(fixed)+" / mois"],
+      ["Personnel",pdfFmtMoney(staff)+" / mois"],["Rémunération cible dirigeant",pdfFmtMoney(owner)+" / mois"],
+      ["Investissement initial estimé",pdfFmtMoney(initial)]
+    ]},
+    {title:"5. Prévisionnel - trois scénarios",table:[
+      ["Scénario","CA mensuel","CA annuel","Résultat après charges"],
+      ["Prudent",pdfFmtMoney(prudent),pdfFmtMoney(prudent*12),pdfFmtMoney(result(prudent))],
+      ["Réaliste",pdfFmtMoney(realistic),pdfFmtMoney(realistic*12),pdfFmtMoney(result(realistic))],
+      ["Ambitieux",pdfFmtMoney(ambitious),pdfFmtMoney(ambitious*12),pdfFmtMoney(result(ambitious))]
+    ]},
+    {title:"6. Seuil de rentabilité",lines:[
+      `Le seuil de rentabilité mensuel estimé est de ${pdfFmtMoney(breakEven)}. Avec un panier moyen de ${pdfFmtMoney(basket)} et ${days} jours d'ouverture par mois, cela représente environ ${clientsDay} clients par jour.`,
+      `Pour conserver 15 % de sécurité, GWADAPROJET recommande de viser environ ${pdfFmtMoney(safeCA)} par mois, soit environ ${targetClients} clients par jour.`
+    ]},
+    {title:"7. Plan de financement initial",lines:[
+      `L'investissement initial estimé est de ${pdfFmtMoney(initial)}. L'apport déclaré est de ${pdfFmtMoney(state.cash)}. Financement envisagé : ${state.finance||"A déterminer"}.`,
+      `Une réserve de sécurité d'environ ${pdfFmtMoney(reserve)} est recommandée, correspondant à trois mois de charges et rémunération cible selon les hypothèses actuelles.`
+    ]},
+    {title:"8. Statut juridique - orientation",lines:[
+      `L'orientation automatique actuelle privilégie : ${best}. Cette indication tient compte du niveau de chiffre d'affaires, du poids des charges, de l'organisation et des objectifs de croissance.`,
+      "Le choix final doit être validé au regard de la fiscalité, de la TVA, de la protection sociale et du besoin éventuel d'associés ou d'investisseurs."
+    ]},
+    {title:"9. Démarches principales",bullets:[
+      "Valider le statut et réaliser les formalités via le Guichet unique.",
+      "Vérifier les règles applicables au local et à l'activité.",
+      "Obtenir les assurances professionnelles nécessaires.",
+      "Pour les activités alimentaires, intégrer les obligations d'hygiène et de chaîne du froid.",
+      "Vérifier les aides et dispositifs disponibles au moment de la création."
+    ]},
+    {title:"10. Plan d'action - 30 jours",bullets:[
+      `Tester pendant 7 à 14 jours la demande réelle pour ${activity} à ${commune}.`,
+      "Obtenir au moins trois devis pour les dépenses principales et remplacer les estimations.",
+      `Construire une offre permettant d'atteindre environ ${pdfFmtMoney(basket)} de panier moyen et ${targetClients} clients par jour.`,
+      `Préserver environ ${pdfFmtMoney(reserve)} de réserve de sécurité avant les dépenses non indispensables.`,
+      "Suivre chaque semaine le CA, les clients, le panier moyen, la marge matières et la trésorerie.",
+      "Valider statut, TVA, fiscalité, assurances et obligations métier avant engagement définitif."
+    ]},
+    {title:"11. Risques et vigilance",bullets:[
+      ...(rent>1500?["Loyer élevé pour une phase de démarrage."]:[]),
+      ...(state.cash<initial*.25?["Apport disponible faible par rapport au besoin initial estimé."]:[]),
+      ...(state.people>2?["Masse salariale significative dès le lancement."]:[]),
+      ...(variableRate>.40?["Poids important des coûts variables."]:[]),
+      "Saisonnalité et variation du trafic en Guadeloupe.",
+      "Écart possible entre panier moyen théorique et ventes réelles.",
+      "Hypothèses à remplacer progressivement par des données terrain."
+    ]},
+    {title:"12. Avertissement",lines:[
+      "Ce dossier est une aide à la décision produite à partir des informations saisies. Il ne remplace pas un conseil juridique, fiscal, comptable ou financier professionnel.",
+      "Les données réglementaires, les hypothèses financières et les dispositifs d'aide doivent être vérifiés au moment du lancement."
+    ]}
+  ];
+
+  const PAGE_W=595, PAGE_H=842, L=46, R=46, TOP=62, BOTTOM=58;
+  let pages=[], ops=[], y=PAGE_H-TOP, currentPage=1;
+
+  const esc=pdfEscape;
+  function addRaw(s){ops.push(s)}
+  function pageChrome(){
+    // discreet premium header/footer for content pages
+    addRaw(`0.04 0.10 0.23 rg 0 800 ${PAGE_W} 42 re f`);
+    addRaw(`BT /F2 9 Tf 1 1 1 rg 1 0 0 1 ${L} 816 Tm (GWADAPROJET) Tj ET`);
+    addRaw(`0.12 0.58 0.28 rg ${L} 39 ${PAGE_W-L-R} 1.4 re f`);
+    addRaw(`BT /F1 8 Tf 0.35 0.39 0.43 rg 1 0 0 1 ${L} 24 Tm (Business plan personnalise - document d'aide a la decision) Tj ET`);
+    addRaw(`BT /F2 8 Tf 0.05 0.12 0.27 rg 1 0 0 1 ${PAGE_W-R-36} 24 Tm (Page ${currentPage}) Tj ET`);
+  }
+  function newPage(){
+    if(ops.length) pages.push(ops.join("\n"));
+    ops=[]; currentPage++; y=PAGE_H-TOP; pageChrome();
+  }
+  function ensure(h){ if(y-h<BOTTOM) newPage(); }
+  function textLine(txt,size=11,bold=false,x=L,leading=15){
+    ensure(leading+2);
+    addRaw(`BT /${bold?"F2":"F1"} ${size} Tf 0.05 0.12 0.27 rg 1 0 0 1 ${x} ${y} Tm (${esc(pdfClean(txt))}) Tj ET`);
+    y-=leading;
+  }
+  function paragraph(txt,size=11){
+    const max=Math.max(35,Math.floor((PAGE_W-L-R)/(size*0.52)));
+    for(const line of pdfWrap(txt,max)) textLine(line,size,false,L,size*1.42);
+    y-=5;
+  }
+  function heading(txt,level=2){
+    const size=level===1?30:17;
+    const lead=level===1?38:24;
+    ensure(lead+10);
+    if(level===2){
+      addRaw(`0.93 0.97 0.94 rg ${L-8} ${y-19} ${PAGE_W-L-R+16} 31 re f`);
+      addRaw(`0.12 0.58 0.28 rg ${L-8} ${y-19} 5 31 re f`);
+    }
+    textLine(txt,size,true,L,lead);
+    if(level===2) y-=7;
+  }
+  function table(rows){
+    const cols=Math.max(...rows.map(r=>r.length));
+    const widths=cols===4?[120,118,118,145]:cols===2?[190,300]:Array(cols).fill((PAGE_W-L-R)/cols);
+    for(let ri=0;ri<rows.length;ri++){
+      const row=rows[ri].map(pdfClean);
+      const wrapped=row.map((cell,ci)=>pdfWrap(cell, Math.max(12,Math.floor(widths[ci]/6.2))));
+      const maxLines=Math.max(...wrapped.map(a=>a.length));
+      const rowH=maxLines*14+10;
+      ensure(rowH+3);
+      if(ri===0 && rows.length>2){
+        addRaw(`0.95 0.97 0.96 rg ${L} ${y-rowH+4} ${PAGE_W-L-R} ${rowH} re f`);
+      }
+      let x=L;
+      for(let ci=0;ci<cols;ci++){
+        for(let li=0;li<wrapped[ci].length;li++){
+          addRaw(`BT /${ri===0&&rows.length>2?"F2":"F1"} 10 Tf 0.05 0.12 0.27 rg 1 0 0 1 ${x+5} ${y-12-li*14} Tm (${esc(wrapped[ci][li])}) Tj ET`);
+        }
+        x+=widths[ci];
+      }
+      addRaw(`0.88 0.90 0.89 RG .6 w ${L} ${y-rowH+3} m ${PAGE_W-R} ${y-rowH+3} l S`);
+      y-=rowH;
+    }
+    y-=8;
+  }
+  function bullets(items){
+    let n=1;
+    for(const item of items){
+      const lines=pdfWrap(item,72);
+      ensure(lines.length*15+5);
+      textLine(String(n)+".",11,true,L,15);
+      y+=15;
+      for(const line of lines) textLine(line,11,false,L+25,15);
+      y-=3;n++;
+    }
+    y-=3;
+  }
+
+  // Premium cover page
+  addRaw(`0.04 0.10 0.23 rg 0 0 ${PAGE_W} ${PAGE_H} re f`);
+  addRaw(`0.12 0.58 0.28 rg 0 0 18 ${PAGE_H} re f`);
+  addRaw(`0.12 0.58 0.28 rg ${L} 715 86 7 re f`);
+  addRaw(`BT /F2 34 Tf 1 1 1 rg 1 0 0 1 ${L} 650 Tm (GWADAPROJET) Tj ET`);
+  addRaw(`BT /F2 21 Tf 0.40 0.80 0.50 rg 1 0 0 1 ${L} 610 Tm (BUSINESS PLAN PERSONNALISE) Tj ET`);
+  const coverActivity=pdfWrap(activity,42);
+  let cy=540;
+  for(const line of coverActivity){ addRaw(`BT /F2 20 Tf 1 1 1 rg 1 0 0 1 ${L} ${cy} Tm (${esc(line)}) Tj ET`); cy-=28; }
+  addRaw(`BT /F1 14 Tf 0.88 0.91 0.95 rg 1 0 0 1 ${L} ${cy-12} Tm (${esc(pdfClean(commune+" - Guadeloupe"))}) Tj ET`);
+  addRaw(`0.08 0.16 0.31 rg ${L} 190 ${PAGE_W-L-R} 150 re f`);
+  addRaw(`BT /F2 12 Tf 0.40 0.80 0.50 rg 1 0 0 1 ${L+22} 305 Tm (INDICATEURS CLES) Tj ET`);
+  addRaw(`BT /F1 10 Tf 0.82 0.86 0.91 rg 1 0 0 1 ${L+22} 272 Tm (Seuil mensuel) Tj ET`);
+  addRaw(`BT /F2 18 Tf 1 1 1 rg 1 0 0 1 ${L+22} 246 Tm (${esc(pdfFmtMoney(breakEven))}) Tj ET`);
+  addRaw(`BT /F1 10 Tf 0.82 0.86 0.91 rg 1 0 0 1 ${L+205} 272 Tm (CA cible +15 %) Tj ET`);
+  addRaw(`BT /F2 18 Tf 1 1 1 rg 1 0 0 1 ${L+205} 246 Tm (${esc(pdfFmtMoney(safeCA))}) Tj ET`);
+  addRaw(`BT /F1 10 Tf 0.82 0.86 0.91 rg 1 0 0 1 ${L+365} 272 Tm (Clients / jour) Tj ET`);
+  addRaw(`BT /F2 18 Tf 1 1 1 rg 1 0 0 1 ${L+365} 246 Tm (${targetClients}) Tj ET`);
+  const stamp=new Date().toLocaleDateString("fr-FR");
+  addRaw(`BT /F1 9 Tf 0.65 0.71 0.79 rg 1 0 0 1 ${L} 72 Tm (Genere le ${esc(stamp)} - GWADAPROJET) Tj ET`);
+  newPage();
+
+  for(let i=1;i<sections.length;i++){
+    const s=sections[i];
+    heading(s.title,2);
+    if(s.lines) for(const p of s.lines) paragraph(p,11);
+    if(s.table) table(s.table);
+    if(s.bullets) bullets(s.bullets);
+    y-=10;
+  }
+  if(ops.length) pages.push(ops.join("\n"));
+
+  // PDF objects: 1 catalog, 2 pages, 3 Helvetica, 4 Helvetica-Bold, then page/content pairs.
+  const objects=[];
+  const pageObjNums=[], contentObjNums=[];
+  for(let i=0;i<pages.length;i++){
+    pageObjNums.push(5+i*2);
+    contentObjNums.push(6+i*2);
+  }
+  objects[1]="<< /Type /Catalog /Pages 2 0 R >>";
+  objects[2]=`<< /Type /Pages /Kids [${pageObjNums.map(n=>n+" 0 R").join(" ")}] /Count ${pages.length} >>`;
+  objects[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  objects[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  for(let i=0;i<pages.length;i++){
+    const pno=pageObjNums[i], cno=contentObjNums[i], stream=pages[i];
+    objects[pno]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${cno} 0 R >>`;
+    objects[cno]=`<< /Length ${pdfByteLen(stream)} >>\nstream\n${stream}\nendstream`;
+  }
+
+  const parts=[], offsets=[0];
+  let total=0;
+  function pushPart(str){
+    const b=pdfWinAnsiBytes(str); parts.push(b); total+=b.length;
+  }
+  pushPart("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  for(let i=1;i<objects.length;i++){
+    offsets[i]=total;
+    pushPart(`${i} 0 obj\n${objects[i]}\nendobj\n`);
+  }
+  const xref=total;
+  pushPart(`xref\n0 ${objects.length}\n0000000000 65535 f \n`);
+  for(let i=1;i<objects.length;i++) pushPart(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
+  pushPart(`trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+
+  const out=new Uint8Array(total); let pos=0;
+  for(const b of parts){out.set(b,pos);pos+=b.length}
+  return new Blob([out],{type:"application/pdf"});
+}
+
+async function downloadBusinessPlanPDF(){
+  try{
+    const blob=pdfMakeDocument();
+    const stamp=new Date().toISOString().slice(0,10);
+    const filename=`GWADAPROJET_Business_Plan_${stamp}.pdf`;
+    const file=new File([blob],filename,{type:"application/pdf"});
+
+    // iPhone/iPad: the native share sheet is usually the most reliable route to "Save to Files".
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({title:"Business plan GWADAPROJET",files:[file]});
+      return;
+    }
+
+    // Fallback: create a genuine PDF URL and open it.
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=filename;
+    a.rel="noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // Some iOS webviews ignore download=. Open the PDF itself after a short delay.
+    setTimeout(()=>{
+      try{ window.location.href=url; }catch(e){ window.open(url,"_blank"); }
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+    },250);
+  }catch(err){
+    console.error(err);
+    alert("Le PDF n'a pas pu être créé sur ce navigateur. Utilise Safari ou réessaie après avoir actualisé la page.");
+  }
+}
+
+
+let selectedPlan="basic";
+let verifiedPlan="";
+
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+function openAccount(){
+  document.getElementById("accountModal").classList.add("open");
+}
+function createLocalAccount(){
+  const name=document.getElementById("accName").value.trim();
+  const email=document.getElementById("accEmail").value.trim();
+  const pass=document.getElementById("accPass").value;
+  if(!name || !email || pass.length<8){alert("Renseigne ton prénom, un e-mail et un mot de passe d'au moins 8 caractères.");return}
+  localStorage.setItem("gwada_account",JSON.stringify({name,email}));
+  document.getElementById("accountPill").textContent="Bonjour "+name;
+  closeModal("accountModal");
+}
+function planRank(plan){ return plan==="advanced" ? 2 : plan==="basic" ? 1 : 0; }
+function getPurchasedPlan(){ return verifiedPlan || ""; }
+function hasPlan(plan){ return planRank(getPurchasedPlan()) >= planRank(plan); }
+function getEntitlementToken(){ return localStorage.getItem("gwada_entitlement_token") || ""; }
+
+async function verifyStoredEntitlement(){
+  const token=getEntitlementToken();
+  verifiedPlan="";
+  if(!token){ applyEntitlements(); return; }
+  try{
+    const res=await fetch("/api/verify-entitlement",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})
+    });
+    const data=await res.json();
+    if(res.ok && data.valid && (data.plan==="basic" || data.plan==="advanced")){
+      verifiedPlan=data.plan;
+    }else{
+      localStorage.removeItem("gwada_entitlement_token");
+    }
+  }catch(e){
+    console.warn("Vérification de l'accès impossible",e);
+  }
+  applyEntitlements();
+}
+
+function renderPremiumActionPlan(){
+  const box=document.getElementById("premiumActionPlan"), dash=document.getElementById("premiumDashboard");
+  if(!box || !dash) return;
+  const val=(id,fallback=0)=>Number(document.getElementById(id)?.value||fallback||0);
+  const basket=val("fBasket",10), days=val("fDays",26);
+  const food=val("fFood",32)/100, vari=val("fVar",4)/100;
+  const rent=val("fRent",state.rent), fixed=val("fFixed",650);
+  const staff=val("fStaff",Math.max(0,(state.people||1)-1)*2300);
+  const owner=val("fOwner",state.income), initial=val("fInitial",0);
+  const variableRate=Math.min(.80,food+vari), contribution=Math.max(.10,1-variableRate);
+  const fixedTotal=rent+fixed+staff+owner, breakEven=fixedTotal/contribution;
+  const target=breakEven*1.15, prudent=breakEven*.90, realistic=target, ambitious=target*1.30;
+  const clientsDay=Math.ceil((breakEven/Math.max(1,basket))/Math.max(1,days));
+  const targetClients=Math.ceil((target/Math.max(1,basket))/Math.max(1,days));
+  const reserve=Math.max(fixedTotal*3,initial*.15);
+  const activity=state.activityText||state.activity||"ton activité", commune=state.commune||"ta commune";
+  const result=ca=>ca*contribution-fixedTotal;
+
+  dash.innerHTML=`
+  <div class="premium-kpis">
+    <div class="premium-kpi">Seuil mensuel<b>${fmt(breakEven)}</b></div>
+    <div class="premium-kpi">CA cible +15 %<b>${fmt(target)}</b></div>
+    <div class="premium-kpi">Clients/jour cible<b>${targetClients}</b></div>
+    <div class="premium-kpi">Réserve conseillée (3 mois)<b>${fmt(reserve)}</b></div>
+  </div>
+  <div class="premium-block"><h3>Prévisionnel de pilotage</h3>
+    <table class="premium-table"><tr><th>Scénario</th><th>CA/mois</th><th>CA/an</th><th>Marge*</th></tr>
+    <tr><td>Prudent</td><td>${fmt(prudent)}</td><td>${fmt(prudent*12)}</td><td>${fmt(result(prudent))}</td></tr>
+    <tr><td>Réaliste</td><td>${fmt(realistic)}</td><td>${fmt(realistic*12)}</td><td>${fmt(result(realistic))}</td></tr>
+    <tr><td>Ambitieux</td><td>${fmt(ambitious)}</td><td>${fmt(ambitious*12)}</td><td>${fmt(result(ambitious))}</td></tr></table>
+    <p class="small">*Après coûts variables, loyer, charges fixes, personnel et rémunération cible saisis. Ce n'est pas un résultat comptable ou fiscal.</p>
+  </div>
+  <div class="premium-block"><h3>Objectif commercial concret</h3>
+    <p>Pour ${activity} à ${commune}, ton seuil représente environ <b>${clientsDay} clients/jour</b> avec un panier de <b>${fmt(basket)}</b>. Avec 15 % de sécurité, vise <b>${targetClients} clients/jour</b>.</p>
+    <p>Si cet objectif paraît trop élevé : augmente le panier moyen, améliore la marge, réduis les charges fixes ou revois l'implantation.</p>
+  </div>
+  <div class="premium-block"><h3>Trésorerie & financement</h3>
+    <table class="premium-table"><tr><th>Indicateur</th><th>Montant</th></tr>
+    <tr><td>Investissement initial estimé</td><td>${fmt(initial)}</td></tr>
+    <tr><td>Apport déclaré</td><td>${fmt(state.cash||0)}</td></tr>
+    <tr><td>Charges + rémunération à couvrir/mois</td><td>${fmt(fixedTotal)}</td></tr>
+    <tr><td>Réserve de sécurité recommandée (3 mois)</td><td>${fmt(reserve)}</td></tr></table>
+  </div>
+  <div class="premium-block"><h3>Points de vigilance</h3><div>
+    ${rent>1500?'<span class="risk-chip">Loyer élevé</span>':''}
+    ${variableRate>.40?'<span class="risk-chip">Coûts variables élevés</span>':''}
+    ${(state.cash||0)<reserve?'<span class="risk-chip">Trésorerie à renforcer</span>':''}
+    ${staff>0?'<span class="risk-chip">Masse salariale à sécuriser</span>':''}
+    <span class="risk-chip">Saisonnalité locale</span><span class="risk-chip">Panier moyen à tester</span>
+  </div></div>`;
+
+  const steps=[
+    `Tester pendant 7 à 14 jours la demande réelle pour ${activity} à ${commune} et noter trafic, demandes et prix acceptés.`,
+    `Obtenir au moins 3 devis pour les dépenses principales et remplacer les estimations du diagnostic.`,
+    `Construire une offre permettant d'atteindre ${fmt(basket)} de panier moyen et environ ${targetClients} clients par jour.`,
+    `Préserver environ ${fmt(reserve)} de réserve de sécurité avant les dépenses non indispensables.`,
+    `Suivre chaque semaine CA, clients, panier moyen, marge matières et trésorerie.`,
+    `Valider statut, TVA, fiscalité, assurances et obligations métier avant engagement définitif.`
+  ];
+  box.innerHTML=`<div class="premium-block"><h3>Plan d'action prioritaire — 30 jours</h3>${steps.map((s,i)=>`<div class="priority"><span class="priority-num">${i+1}</span><div>${s}</div></div>`).join("")}</div>`;
+}
+function applyEntitlements(){
+  const plan=getPurchasedPlan();
+  document.querySelectorAll(".entitlement-basic").forEach(el=>el.style.display="none");
+  const premium=document.getElementById("premiumAnalysis");
+  const content=document.getElementById("premiumContent");
+  const advancedTools=document.getElementById("advancedTools");
+  if(planRank(plan)>=1){
+    document.querySelectorAll(".entitlement-basic").forEach(el=>el.style.display="block");
+    if(premium) premium.classList.add("unlocked");
+    if(content) content.style.display="block";
+    renderPremiumActionPlan();
+    const t=document.getElementById("basicCtaTitle"); if(t) t.textContent="Plan complet débloqué ✓";
+    const p=document.getElementById("basicCtaText"); if(p) p.textContent="Ton plan d’action et tes recommandations sont disponibles.";
+    const b=document.getElementById("basicCtaBtn"); if(b) b.textContent="Accéder à mon plan complet";
+  }
+  if(planRank(plan)>=2){
+    if(advancedTools) advancedTools.style.display="block";
+    const t=document.getElementById("advancedCtaTitle"); if(t) t.textContent="Business plan débloqué ✓";
+    const p=document.getElementById("advancedCtaText"); if(p) p.textContent="Ton dossier complet est disponible.";
+    const b=document.getElementById("advancedCtaBtn"); if(b) b.textContent="Générer mon business plan PDF";
+  }
+}
+
+function restoreAccount(){
+  try{
+    const a=JSON.parse(localStorage.getItem("gwada_account")||"null");
+    if(a && a.name) document.getElementById("accountPill").textContent="Bonjour "+a.name;
+  }catch(e){}
+}
+function openCheckout(plan){
+  selectedPlan=plan;
+  const advanced=plan==="advanced";
+  document.getElementById("checkoutTitle").textContent=advanced?"Business plan + prévisionnel":"Plan complet";
+  document.getElementById("checkoutDesc").textContent=advanced
+    ?"Débloque toute l'analyse à 29,90 €, plus le business plan personnalisé, le prévisionnel complet et le PDF premium."
+    :"Débloque les calculs détaillés, le seuil de rentabilité, les scénarios financiers, la trésorerie et le plan d'action personnalisé.";
+  document.getElementById("checkoutPrice").textContent=advanced?"49,90 €":"29,90 €";
+  try{
+    const a=JSON.parse(localStorage.getItem("gwada_account")||"null");
+    if(a){document.getElementById("payName").value=a.name||"";document.getElementById("payEmail").value=a.email||"";}
+  }catch(e){}
+  document.getElementById("checkoutModal").classList.add("open");
+}
+
+async function startStripeCheckout(){
+  const name=document.getElementById("payName").value.trim();
+  const email=document.getElementById("payEmail").value.trim();
+  if(!name || !email){alert("Renseigne ton nom et ton e-mail.");return}
+  const btn=document.getElementById("payBtn");
+  const original=btn.textContent;
+  btn.disabled=true; btn.textContent="Connexion à Stripe…";
+  try{
+    localStorage.setItem("gwada_account",JSON.stringify({name,email}));
+    const res=await fetch("/api/create-checkout",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({plan:selectedPlan,email,name})
+    });
+    const data=await res.json();
+    if(!res.ok || !data.url) throw new Error(data.error||"Impossible de démarrer le paiement.");
+    window.location.assign(data.url);
+  }catch(e){
+    alert(e.message||"Paiement indisponible. Aucun accès n'a été débloqué.");
+    btn.disabled=false; btn.textContent=original;
+  }
+}
+
+async function consumeStripeReturn(){
+  const qs=new URLSearchParams(location.search);
+  if(qs.get("payment")!=="success") return false;
+  const sessionId=qs.get("session_id");
+  if(!sessionId){ alert("Retour Stripe incomplet : aucun accès n'a été débloqué."); return true; }
+  try{
+    const res=await fetch("/api/verify-payment?session_id="+encodeURIComponent(sessionId));
+    const data=await res.json();
+    if(!res.ok || !data.token || !data.plan) throw new Error(data.error||"Paiement non confirmé.");
+    localStorage.setItem("gwada_entitlement_token",data.token);
+    verifiedPlan=data.plan;
+    selectedPlan=data.plan;
+    applyEntitlements();
+    document.getElementById("successText").textContent=data.plan==="advanced"
+      ?"Ton business plan personnalisé et ton PDF premium sont maintenant accessibles."
+      :"Ton analyse complète et ton plan d'action sont maintenant accessibles.";
+    document.getElementById("successModal").classList.add("open");
+  }catch(e){
+    alert((e.message||"Paiement non confirmé")+" Aucun contenu payant n'a été débloqué.");
+  }finally{
+    history.replaceState({},document.title,location.pathname+location.hash);
+  }
+  return true;
+}
+
+function scrollToPremiumContent(){
+  const target=document.getElementById("premiumContent") || document.getElementById("premiumAnalysis");
+  if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function handlePlanAction(plan){
+  if(hasPlan(plan)){
+    applyEntitlements();
+    if(plan==="advanced") secureGenerateBusinessPlan();
+    else scrollToPremiumContent();
+    return;
+  }
+  openCheckout(plan);
+}
+async function secureGenerateBusinessPlan(){
+  const token=getEntitlementToken();
+  if(!token || !hasPlan("advanced")){ openCheckout("advanced"); return; }
+  try{
+    const res=await fetch("/api/verify-entitlement",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,requiredPlan:"advanced"})
+    });
+    const data=await res.json();
+    if(!res.ok || !data.valid || planRank(data.plan)<2) throw new Error("L'accès PDF n'est pas confirmé.");
+    generateBusinessPlan();
+  }catch(e){
+    verifiedPlan="";
+    localStorage.removeItem("gwada_entitlement_token");
+    applyEntitlements();
+    alert("Accès PDF refusé. Un paiement 49,90 € confirmé est nécessaire.");
+  }
+}
+function finishPurchase(){
+  closeModal("successModal");
+  applyEntitlements();
+  if(selectedPlan==="advanced"){
+    const adv=document.getElementById("advancedTools");
+    if(adv) adv.scrollIntoView({behavior:"smooth",block:"center"});
+  }else scrollToPremiumContent();
+}
+window.addEventListener("load",async()=>{
+  restoreAccount();
+  const fromStripe=await consumeStripeReturn();
+  if(!fromStripe) await verifyStoredEntitlement();
+});
+
+</script>
+
+
+<div class="modal" id="accountModal">
+  <div class="modal-card">
+    <h2>Crée ton compte GWADAPROJET</h2>
+    <p>Enregistre ton projet et retrouve ton diagnostic plus tard.</p>
+    <div class="formline"><label>Prénom</label><input id="accName" placeholder="Ton prénom"></div>
+    <div class="formline"><label>E-mail</label><input id="accEmail" type="email" placeholder="nom@email.com"></div>
+    <div class="formline"><label>Mot de passe</label><input id="accPass" type="password" placeholder="8 caractères minimum"></div>
+    <button class="btn btn-primary" onclick="createLocalAccount()">Créer mon compte</button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal('accountModal')">Plus tard</button>
+    <p class="small">Ton profil reste enregistré sur cet appareil. Les droits payants sont vérifiés séparément par le serveur.</p>
+  </div>
+</div>
+
+<div class="modal" id="checkoutModal">
+  <div class="modal-card">
+    <h2 id="checkoutTitle">Débloquer GWADAPROJET</h2>
+    <p id="checkoutDesc"></p>
+    <div class="checkout-total" id="checkoutPrice"></div>
+    <div class="formline"><label>Nom</label><input id="payName" placeholder="Nom du client"></div>
+    <div class="formline"><label>E-mail de facturation</label><input id="payEmail" type="email" placeholder="nom@email.com"></div>
+    <div class="secure-payment-note">🔒 Paiement sécurisé par Stripe. Les coordonnées bancaires sont saisies directement sur la page Stripe et ne transitent pas par GWADAPROJET.</div>
+    <button class="btn btn-primary" id="payBtn" onclick="startStripeCheckout()">Continuer vers le paiement sécurisé</button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal('checkoutModal')">Annuler</button>
+  </div>
+</div>
+
+<div class="modal" id="successModal">
+  <div class="modal-card">
+    <div class="success"><b>Paiement Stripe confirmé ✓</b><br>Ton accès a été vérifié côté serveur.</div>
+    <h2>Bienvenue dans GWADAPROJET</h2>
+    <p id="successText"></p>
+    <button class="btn btn-primary" onclick="finishPurchase()">Accéder à mon contenu débloqué</button>
+  </div>
+</div>
+
+<section id="printPlan">
+  <div class="bp-screen">
+    <div class="bp-toolbar">
+      <strong>Business plan GWADAPROJET</strong>
+      <div class="bp-actions">
+        <button class="bp-toolbtn secondary" type="button" onclick="closeBusinessPlanPreview()">← Retour</button>
+        <button class="bp-toolbtn primary" type="button" onclick="downloadBusinessPlanPDF()">Créer / enregistrer le PDF</button>
+      </div>
+    </div>
+    <div class="bp-help"><b>Sur iPhone :</b> touche « Créer / enregistrer le PDF ». GWADAPROJET fabrique alors un vrai fichier PDF. Si le partage de fichiers est disponible, la feuille de partage iOS s’ouvre directement ; sinon le PDF s’ouvre dans le navigateur pour être enregistré dans Fichiers.</div>
+  <div class="cover">
+    <h1>GWADAPROJET</h1>
+    <h3>Business plan personnalisé</h3>
+    <p id="bpCoverProject"></p>
+    <p id="bpCoverLocation"></p>
+    <p>Document généré à partir du questionnaire GWADAPROJET</p>
+  </div>
+  <h2>1. Résumé exécutif</h2><p id="bpExecutive"></p>
+  <h2>2. Profil du projet</h2><div id="bpProfile"></div>
+  <h2>3. Offre et clientèle</h2><p id="bpOffer"></p>
+  <h2>4. Hypothèses financières</h2><div id="bpAssumptions"></div>
+  <h2>5. Prévisionnel - trois scénarios</h2><div id="bpScenarios"></div>
+  <h2>6. Seuil de rentabilité</h2><p id="bpBreakEven"></p>
+  <h2>7. Plan de financement initial</h2><p id="bpFunding"></p>
+  <h2>8. Statut juridique - orientation</h2><p id="bpLegal"></p>
+  <h2>9. Démarches principales</h2><div id="bpSteps"></div>
+  <h2>10. Plan d'action</h2><div id="bpActions"></div>
+  <h2>11. Risques et vigilance</h2><div id="bpRisks"></div>
+  <h2>12. Avertissement</h2>
+  <p>Ce dossier est une aide à la décision produite à partir des informations saisies. Il ne remplace pas un conseil juridique, fiscal, comptable ou financier professionnel. Les données réglementaires et les hypothèses doivent être vérifiées au moment du lancement.</p>
+  </div>
+</section>
+
+</body>
+</html>
