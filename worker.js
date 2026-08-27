@@ -1,149 +1,156 @@
+const PRODUCTS = {
+  basic: { amount: 2990, name: "GWADAPROJET — Plan complet 29,90 €" },
+  advanced: { amount: 4990, name: "GWADAPROJET — Business plan + prévisionnel 49,90 €" },
+};
 
-const ORIGIN = "https://radiant-dragon-95a5b9.netlify.app";
+const encoder = new TextEncoder();
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store"
-    }
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 }
 
-async function createCheckout(request, env) {
-  if (!env.STRIPE_SECRET_KEY) {
-    return json({ error: "STRIPE_SECRET_KEY non configurée." }, 500);
+function getSecrets(env) {
+  if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY non configurée dans Cloudflare.");
+  if (!env.GWADA_ENTITLEMENT_SECRET || env.GWADA_ENTITLEMENT_SECRET.length < 32) {
+    throw new Error("GWADA_ENTITLEMENT_SECRET doit contenir au moins 32 caractères.");
   }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Requête invalide." }, 400);
-  }
-
-  const plan = body.plan === "advanced" ? "advanced" : "basic";
-  const amount = plan === "advanced" ? 4990 : 2990;
-
-  const productName =
-    plan === "advanced"
-      ? "GWADAPROJET — Business plan + prévisionnel"
-      : "GWADAPROJET — Plan complet";
-
-  const url = new URL(request.url);
-  const params = new URLSearchParams();
-
-  params.set("mode", "payment");
-  params.set(
-    "success_url",
-    `${url.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`
-  );
-  params.set("cancel_url", `${url.origin}/?checkout=cancelled`);
-
-  params.set("billing_address_collection", "required");
-  params.set("invoice_creation[enabled]", "true");
-
-  params.set("line_items[0][quantity]", "1");
-  params.set("line_items[0][price_data][currency]", "eur");
-  params.set(
-    "line_items[0][price_data][unit_amount]",
-    String(amount)
-  );
-  params.set(
-    "line_items[0][price_data][product_data][name]",
-    productName
-  );
-
-  params.set("metadata[plan]", plan);
-
-  if (body.email) {
-    params.set("customer_email", String(body.email).trim());
-  }
-
-  if (body.name) {
-    params.set("metadata[name]", String(body.name).trim());
-  }
-
-  const response = await fetch(
-    "https://api.stripe.com/v1/checkout/sessions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params.toString()
-    }
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return json(
-      {
-        error:
-          data?.error?.message ||
-          "Erreur pendant la création du paiement Stripe."
-      },
-      response.status
-    );
-  }
-
-  return json({ url: data.url });
+  return { stripe: env.STRIPE_SECRET_KEY, entitlement: env.GWADA_ENTITLEMENT_SECRET };
 }
 
-async function proxy(request) {
-  const url = new URL(request.url);
+function toBase64Url(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
 
-  const target = new URL(
-    url.pathname + url.search,
-    ORIGIN
+function fromBase64Url(value) {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const binary = atob(normalized + "=".repeat((4 - (normalized.length % 4)) % 4));
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+async function hmac(value, secret) {
+  const key = await crypto.subtle.importKey(
+    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(value)));
+}
 
-  const headers = new Headers(request.headers);
-  headers.delete("host");
+async function signEntitlement(payload, secret) {
+  const body = toBase64Url(encoder.encode(JSON.stringify(payload)));
+  return `${body}.${toBase64Url(await hmac(body, secret))}`;
+}
 
-  const init = {
-    method: request.method,
-    headers,
-    redirect: "follow"
-  };
-
-  if (
-    request.method !== "GET" &&
-    request.method !== "HEAD"
-  ) {
-    init.body = request.body;
+async function verifyEntitlement(token, secret) {
+  if (!token || !token.includes(".")) return null;
+  try {
+    const [body, signature] = token.split(".");
+    const expected = await hmac(body, secret);
+    const received = fromBase64Url(signature);
+    if (expected.length !== received.length) return null;
+    let difference = 0;
+    for (let index = 0; index < expected.length; index += 1) difference |= expected[index] ^ received[index];
+    if (difference !== 0) return null;
+    const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(body)));
+    if (payload.exp && Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
   }
+}
 
-  return fetch(target.toString(), init);
+function rank(plan) {
+  return plan === "advanced" ? 2 : plan === "basic" ? 1 : 0;
+}
+
+async function stripeRequest(path, options, stripe) {
+  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+    ...options,
+    headers: { Authorization: `Bearer ${stripe}`, ...(options?.headers || {}) },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || "Stripe a refusé la requête.");
+  return data;
+}
+
+async function createCheckout(request, env) {
+  if (request.method !== "POST") return json({ error: "Méthode non autorisée." }, 405);
+  const { stripe } = getSecrets(env);
+  const body = await request.json();
+  const product = PRODUCTS[body.plan];
+  const email = String(body.email || "").trim().slice(0, 254);
+  const name = String(body.name || "").trim().slice(0, 120);
+  if (!product || !email || !name) return json({ error: "Offre, nom ou e-mail invalide." }, 400);
+
+  const origin = new URL(request.url).origin;
+  const form = new URLSearchParams({
+    mode: "payment",
+    success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/?payment=cancelled`,
+    customer_email: email,
+    client_reference_id: `${body.plan}-${Date.now()}`,
+    "metadata[plan]": body.plan,
+    "metadata[customer_name]": name,
+    "line_items[0][quantity]": "1",
+    "line_items[0][price_data][currency]": "eur",
+    "line_items[0][price_data][unit_amount]": String(product.amount),
+    "line_items[0][price_data][product_data][name]": product.name,
+    billing_address_collection: "required",
+    "invoice_creation[enabled]": "true",
+  });
+  const session = await stripeRequest("checkout/sessions", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  }, stripe);
+  return json({ url: session.url });
+}
+
+async function verifyPayment(request, env) {
+  const { stripe, entitlement } = getSecrets(env);
+  const sessionId = new URL(request.url).searchParams.get("session_id") || "";
+  if (!/^cs_(test_)?[A-Za-z0-9]+$/.test(sessionId)) return json({ error: "Session Stripe invalide." }, 400);
+  const session = await stripeRequest(`checkout/sessions/${encodeURIComponent(sessionId)}`, {}, stripe);
+  const plan = session?.metadata?.plan;
+  if (session.payment_status !== "paid" || !PRODUCTS[plan]) {
+    return json({ error: "Le paiement n'est pas confirmé." }, 402);
+  }
+  const token = await signEntitlement({
+    v: 1,
+    plan,
+    session_id: session.id,
+    email: session.customer_details?.email || session.customer_email || "",
+    iat: Date.now(),
+    exp: Date.now() + 1000 * 60 * 60 * 24 * 365,
+  }, entitlement);
+  return json({ paid: true, plan, token });
+}
+
+async function checkEntitlement(request, env) {
+  if (request.method !== "POST") return json({ error: "Méthode non autorisée." }, 405);
+  const { entitlement } = getSecrets(env);
+  const body = await request.json();
+  const payload = await verifyEntitlement(body.token, entitlement);
+  if (!payload || !PRODUCTS[payload.plan]) return json({ valid: false }, 401);
+  if (body.requiredPlan && rank(payload.plan) < rank(body.requiredPlan)) {
+    return json({ valid: false, plan: payload.plan }, 403);
+  }
+  return json({ valid: true, plan: payload.plan, expiresAt: payload.exp });
 }
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-
-    if (
-      url.pathname === "/api/create-checkout" &&
-      request.method === "POST"
-    ) {
-      return createCheckout(request, env);
+    const path = new URL(request.url).pathname;
+    try {
+      if (path === "/api/create-checkout") return await createCheckout(request, env);
+      if (path === "/api/verify-payment") return await verifyPayment(request, env);
+      if (path === "/api/verify-entitlement") return await checkEntitlement(request, env);
+      return env.ASSETS.fetch(request);
+    } catch (error) {
+      return json({ error: error?.message || "Erreur serveur." }, 500);
     }
-
-    if (url.pathname === "/assets/config.js") {
-      return new Response(
-        'window.GWADA_CONFIG={checkoutEndpoint:"/api/create-checkout"};',
-        {
-          headers: {
-            "content-type":
-              "application/javascript; charset=utf-8",
-            "cache-control": "no-store"
-          }
-        }
-      );
-    }
-
-    return proxy(request);
-  }
+  },
 };
