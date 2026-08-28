@@ -13,9 +13,15 @@ function json(data, status = 200) {
 }
 
 function getSecrets(env) {
-  if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY non configurée dans Cloudflare.");
-  const entitlement = env.GWADA_ENTITLEMENT_SECRET || env.STRIPE_SECRET_KEY;
-  return { stripe: env.STRIPE_SECRET_KEY, entitlement };
+  // Cloudflare currently contains the new restricted Stripe key under "Secret".
+  // Prefer it when present, while keeping STRIPE_SECRET_KEY as the canonical fallback.
+  const stripe = String(env.Secret || env.STRIPE_SECRET_KEY || "").trim();
+  if (!stripe) throw new Error("Clé Stripe non configurée dans Cloudflare.");
+  if (stripe.includes("*") || stripe.includes("...") || !/^(?:sk|rk)_(?:test|live)_[A-Za-z0-9]+$/.test(stripe)) {
+    throw new Error("La clé Stripe Cloudflare est masquée ou invalide. Utilisez la clé complète sk_live_… ou rk_live_….");
+  }
+  const entitlement = env.GWADA_ENTITLEMENT_SECRET || stripe;
+  return { stripe, entitlement };
 }
 
 function toBase64Url(bytes) {
