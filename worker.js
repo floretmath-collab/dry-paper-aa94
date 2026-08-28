@@ -13,9 +13,9 @@ function json(data, status = 200) {
 }
 
 function getSecrets(env) {
-  // Accept the secret names previously configured in the Cloudflare dashboard.
-  // STRIPE_SECRET_KEY remains the canonical name for future configuration.
-  const stripe = String(env.STRIPE_SECRET_KEY || env.SECRET || env.Secret || "").trim();
+  // Prefer the newest valid secret configured as SECRET in Cloudflare.
+  // Older variable names remain fallbacks only.
+  const stripe = String(env.SECRET || env.Secret || env.STRIPE_SECRET_KEY || "").trim();
   if (!stripe) throw new Error("Clé Stripe non configurée dans Cloudflare.");
   if (stripe.includes("*") || stripe.includes("...") || !/^(?:sk|rk)_(?:test|live)_[A-Za-z0-9]+$/.test(stripe)) {
     throw new Error("La clé Stripe Cloudflare est masquée ou invalide. Utilisez la clé complète sk_live_… ou rk_live_….");
