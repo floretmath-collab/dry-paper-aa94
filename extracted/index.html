@@ -1286,7 +1286,7 @@ function createLocalAccount(){
   const pass=document.getElementById("accPass").value;
   if(!name || !email || pass.length<8){alert("Renseigne ton prénom, un e-mail et un mot de passe d'au moins 8 caractères.");return}
   localStorage.setItem("gwada_account",JSON.stringify({name,email}));
-  document.getElementById("accountPill").textContent="Bonjour "+name;
+  document.getElementById("accountPill").textContent="Bonjour 👋";
   closeModal("accountModal");
 }
 function planRank(plan){ return plan==="advanced" ? 2 : plan==="basic" ? 1 : 0; }
@@ -1401,7 +1401,7 @@ function applyEntitlements(){
 function restoreAccount(){
   try{
     const a=JSON.parse(localStorage.getItem("gwada_account")||"null");
-    if(a && a.name) document.getElementById("accountPill").textContent="Bonjour "+a.name;
+    if(a && a.name) document.getElementById("accountPill").textContent="Bonjour 👋";
   }catch(e){}
 }
 function openCheckout(plan){
