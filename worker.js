@@ -1,5 +1,3 @@
-const ORIGIN = "https://radiant-dragon-95a5b9.netlify.app";
-
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -236,26 +234,9 @@ async function verifyAccess(request, env) {
   return json({ valid: true, plan: payload.plan, expiresAt: payload.exp });
 }
 
-async function proxyToCurrentSite(request) {
+async function serveSite(request, env) {
   const incoming = new URL(request.url);
-  const target = new URL(ORIGIN);
-  target.pathname = incoming.pathname;
-  target.search = incoming.search;
-
-  const headers = new Headers(request.headers);
-  headers.delete("host");
-
-  const init = {
-    method: request.method,
-    headers,
-    redirect: "follow"
-  };
-
-  if (!["GET", "HEAD"].includes(request.method)) {
-    init.body = request.body;
-  }
-
-  const response = await fetch(target.toString(), init);
+  const response = await env.ASSETS.fetch(request);
   if (request.method !== "GET" || incoming.pathname !== "/" || !response.headers.get("content-type")?.includes("text/html")) return response;
 
   return new HTMLRewriter().on("body", {
@@ -269,15 +250,15 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/.netlify/functions/create-checkout") {
+    if (url.pathname === "/.netlify/functions/create-checkout" || url.pathname === "/api/create-checkout") {
       return createCheckout(request, env);
     }
 
-    if (url.pathname === "/.netlify/functions/verify-payment") {
+    if (url.pathname === "/.netlify/functions/verify-payment" || url.pathname === "/api/verify-payment") {
       return verifyPayment(request, env);
     }
 
-    if (url.pathname === "/.netlify/functions/verify-entitlement") {
+    if (url.pathname === "/.netlify/functions/verify-entitlement" || url.pathname === "/api/verify-entitlement") {
       return verifyAccess(request, env);
     }
 
@@ -285,6 +266,6 @@ export default {
       return visibilityPage();
     }
 
-    return proxyToCurrentSite(request);
+    return serveSite(request, env);
   }
 };
