@@ -240,7 +240,7 @@ function escapeHtml(value) {
 }
 
 function packPage() {
-  return new Response(\`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mon Pack Visibilité IA — GWADAPROJET</title><style>
+  return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mon Pack Visibilité IA — GWADAPROJET</title><style>
   :root{--navy:#0b1f44;--green:#159447;--purple:#7557d9;--bg:#f4f7fb}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--navy)}main{max-width:920px;margin:auto;padding:24px 16px 70px}.brand{font-weight:900;font-size:24px;color:var(--navy);text-decoration:none}.brand span{color:var(--green)}.panel{background:#fff;border-radius:24px;padding:28px;margin-top:22px;box-shadow:0 14px 45px #0b1f4414}h1{font-size:clamp(30px,6vw,50px);margin:8px 0}.lead{color:#5d6876;font-size:18px}.notice{background:#edf9f1;border:1px solid #a7dfb9;border-radius:14px;padding:14px;margin:18px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{font-weight:800;display:block;margin-bottom:6px}input,textarea,select{width:100%;padding:13px;border:1px solid #cbd5df;border-radius:11px;font:inherit}textarea{min-height:92px;resize:vertical}.full{grid-column:1/-1}.btn{border:0;border-radius:13px;padding:15px 18px;background:linear-gradient(90deg,var(--purple),#9b66e6);color:#fff;font-weight:900;font-size:16px;cursor:pointer}.btn.secondary{background:var(--navy)}.result{white-space:pre-wrap;background:#f8fafc;border:1px solid #dbe3ec;border-radius:16px;padding:20px;line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.hidden{display:none}@media(max-width:680px){.grid{grid-template-columns:1fr}.panel{padding:21px}.full{grid-column:auto}}</style></head><body><main><a class="brand" href="/">GWADA<span>PROJET</span></a><section class="panel"><div id="loading"><h1>Vérification du paiement…</h1><p class="lead">Quelques secondes suffisent.</p></div><div id="denied" class="hidden"><h1>Paiement non confirmé</h1><p class="lead" id="deniedMsg">Nous ne pouvons pas encore ouvrir ton pack.</p><a href="/visibilite-ia">Retour au Pack Visibilité IA</a></div><div id="formWrap" class="hidden"><div class="notice">✓ Paiement confirmé. Complète ces informations pour créer ton pack.</div><h1>Prépare ton Pack Visibilité IA</h1><p class="lead">Tes réponses servent uniquement à adapter les textes à ton activité.</p><div class="grid"><div><label for="business">Nom de l’entreprise</label><input id="business" maxlength="120" placeholder="Ex. Karukéra Services"></div><div><label for="activity">Activité</label><input id="activity" maxlength="160" placeholder="Ex. coiffure à domicile"></div><div class="full"><label for="audience">Clients recherchés</label><textarea id="audience" maxlength="500" placeholder="Qui souhaites-tu attirer ?"></textarea></div><div class="full"><label for="offer">Offre principale</label><textarea id="offer" maxlength="500" placeholder="Que proposes-tu et quel problème résous-tu ?"></textarea></div><div><label for="tone">Ton souhaité</label><select id="tone"><option>Professionnel et chaleureux</option><option>Dynamique et direct</option><option>Simple et rassurant</option><option>Créatif et original</option></select></div><div><label for="channels">Réseaux principaux</label><input id="channels" maxlength="120" value="Facebook et Instagram"></div><div class="full"><button class="btn" id="generate">Créer mon pack maintenant</button></div></div></div><div id="resultWrap" class="hidden"><h1>Ton pack est prêt</h1><p class="lead">Relis et adapte les informations pratiques avant publication.</p><div class="actions"><button class="btn" id="copy">Copier les textes</button><button class="btn secondary" id="download">Télécharger le pack</button></div><div id="result" class="result"></div></div></section></main><script>
   let token='',packText='';const q=new URLSearchParams(location.search),sid=q.get('session_id')||'';
   async function start(){try{const r=await fetch('/api/verify-payment?session_id='+encodeURIComponent(sid)),d=await r.json();if(!r.ok||!d.paid||d.plan!=='visibility_ai')throw new Error(d.error||'Paiement non confirmé.');token=d.token;document.getElementById('loading').classList.add('hidden');document.getElementById('formWrap').classList.remove('hidden')}catch(e){document.getElementById('loading').classList.add('hidden');document.getElementById('denied').classList.remove('hidden');document.getElementById('deniedMsg').textContent=e.message}}
@@ -248,7 +248,7 @@ function packPage() {
   document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(packText);document.getElementById('copy').textContent='Copié ✓'};
   document.getElementById('download').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([packText],{type:'text/plain;charset=utf-8'}));a.download='Pack-Visibilite-GWADAPROJET.txt';a.click();URL.revokeObjectURL(a.href)};
   start();
-</script></body></html>\`, {headers:{"content-type":"text/html; charset=utf-8","cache-control":"no-store"}});
+</script></body></html>`, {headers:{"content-type":"text/html; charset=utf-8","cache-control":"no-store"}});
 }
 
 async function generateVisibilityPack(request, env) {
@@ -267,56 +267,56 @@ async function generateVisibilityPack(request, env) {
   const channels = String(body.channels || "Facebook et Instagram").trim().slice(0,120);
   if (!business || !activity || !audience || !offer) return json({ error: "Informations incomplètes." }, 400);
   const hashtags = ["#Guadeloupe","#Entrepreneuriat","#EntrepriseLocale","#GWADAPROJET","#" + business.replace(/[^A-Za-zÀ-ÿ0-9]/g,"")].join(" ");
-  const text = \`PACK VISIBILITÉ IA — GWADAPROJET
-Entreprise : \${business}
-Activité : \${activity}
-Public recherché : \${audience}
-Réseaux : \${channels}
-Ton : \${tone}
+  const text = `PACK VISIBILITÉ IA — GWADAPROJET
+Entreprise : ${business}
+Activité : ${activity}
+Public recherché : ${audience}
+Réseaux : ${channels}
+Ton : ${tone}
 
 1. PRÉSENTATION PROFESSIONNELLE
-\${business} propose \${offer}. Notre objectif : accompagner \${audience} avec une approche \${tone.toLowerCase()}, pensée pour les réalités de la Guadeloupe. Contactez-nous pour vérifier ensemble si notre solution correspond à votre besoin.
+${business} propose ${offer}. Notre objectif : accompagner ${audience} avec une approche ${tone.toLowerCase()}, pensée pour les réalités de la Guadeloupe. Contactez-nous pour vérifier ensemble si notre solution correspond à votre besoin.
 
 2. BIO COURTE POUR LES RÉSEAUX
-\${activity} en Guadeloupe • \${offer} • Informations et contact par message privé.
+${activity} en Guadeloupe • ${offer} • Informations et contact par message privé.
 
 3. SEPT PUBLICATIONS PRÊTES À ADAPTER
 
 PUBLICATION 1 — PRÉSENTATION
-🌴 Bienvenue chez \${business} !
-Nous accompagnons \${audience}.
-Notre offre : \${offer}
+🌴 Bienvenue chez ${business} !
+Nous accompagnons ${audience}.
+Notre offre : ${offer}
 Vous avez une question ? Envoyez-nous un message privé.
-\${hashtags}
+${hashtags}
 
 PUBLICATION 2 — LE BESOIN
-Vous recherchez une solution pour \${offer} ?
-\${business} vous explique clairement les possibilités, sans promesse exagérée. Écrivez-nous pour présenter votre besoin.
-\${hashtags}
+Vous recherchez une solution pour ${offer} ?
+${business} vous explique clairement les possibilités, sans promesse exagérée. Écrivez-nous pour présenter votre besoin.
+${hashtags}
 
 PUBLICATION 3 — CONSEIL
 Avant de choisir un professionnel, précisez votre objectif, votre budget et votre délai. Ces trois informations permettent de proposer une réponse plus adaptée.
-Besoin d’en parler ? Contactez \${business}.
-\${hashtags}
+Besoin d’en parler ? Contactez ${business}.
+${hashtags}
 
 PUBLICATION 4 — COULISSES
-Aujourd’hui, nous préparons nos prochaines prestations pour mieux répondre aux besoins de \${audience}. La qualité commence par une bonne écoute et une organisation sérieuse.
-\${hashtags}
+Aujourd’hui, nous préparons nos prochaines prestations pour mieux répondre aux besoins de ${audience}. La qualité commence par une bonne écoute et une organisation sérieuse.
+${hashtags}
 
 PUBLICATION 5 — QUESTION
-Quelle est votre principale difficulté concernant \${activity} ?
+Quelle est votre principale difficulté concernant ${activity} ?
 Répondez en commentaire ou par message privé : vos questions nous aideront à partager des conseils réellement utiles.
-\${hashtags}
+${hashtags}
 
 PUBLICATION 6 — OFFRE
-Notre priorité : proposer une solution claire autour de \${offer}.
+Notre priorité : proposer une solution claire autour de ${offer}.
 Demandez les informations pratiques, les conditions et le tarif avant de décider.
-\${hashtags}
+${hashtags}
 
 PUBLICATION 7 — PROXIMITÉ
-Entreprise locale en Guadeloupe, \${business} souhaite construire une relation simple et transparente avec ses clients.
+Entreprise locale en Guadeloupe, ${business} souhaite construire une relation simple et transparente avec ses clients.
 Découvrez notre activité et échangeons sur votre projet.
-\${hashtags}
+${hashtags}
 
 4. ACCROCHES COURTES
 • Une solution locale pour un besoin concret.
@@ -342,7 +342,7 @@ Jour 6 : présenter clairement l’offre et ses conditions.
 Jour 7 : mesurer les messages, clics et demandes reçus.
 
 IMPORTANT
-Relisez chaque texte, ajoutez vos coordonnées, vos conditions réelles et vos visuels. Ne publiez aucun tarif, délai ou résultat que vous ne pouvez pas garantir.\`;
+Relisez chaque texte, ajoutez vos coordonnées, vos conditions réelles et vos visuels. Ne publiez aucun tarif, délai ou résultat que vous ne pouvez pas garantir.`;
   return json({ text });
 }
 
