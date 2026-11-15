@@ -29,11 +29,24 @@ function rank(plan) {
   return plan === "advanced" ? 2 : ["basic", "visibility_ai"].includes(plan) ? 1 : 0;
 }
 
+function territoryProfile(value) {
+  const key = ["guadeloupe", "martinique", "france", "caraibe"].includes(String(value || "").toLowerCase())
+    ? String(value).toLowerCase()
+    : "guadeloupe";
+  return {
+    guadeloupe: { key, label: "Guadeloupe", place: "en Guadeloupe", hashtags: ["#Guadeloupe", "#Entrepreneuriat971", "#EntrepriseLocale"] },
+    martinique: { key, label: "Martinique", place: "en Martinique", hashtags: ["#Martinique", "#Entrepreneuriat972", "#EntrepriseLocale"] },
+    france: { key, label: "France", place: "en France", hashtags: ["#France", "#Entrepreneuriat", "#TPE", "#PME"] },
+    caraibe: { key, label: "Caraïbe", place: "dans la Caraïbe", hashtags: ["#Caraibes", "#CaribbeanBusiness", "#Entrepreneuriat"] }
+  }[key];
+}
+
 function visibilityPage() {
   return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Visibilité IA — GWADAPROJET</title><style>
-  :root{--navy:#0b1f44;--green:#159447;--light:#f4faf7;--purple:#7557d9}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:linear-gradient(135deg,#f4faf7,#eef3ff);color:var(--navy)}main{max-width:980px;margin:auto;padding:28px 20px 60px}.brand{font-weight:900;font-size:26px;color:var(--navy);text-decoration:none}.brand span{color:var(--green)}.hero{background:#fff;border-radius:28px;padding:42px;margin-top:28px;box-shadow:0 18px 55px #0b1f4414}.tag{display:inline-block;background:#eee9ff;color:#593db8;padding:8px 14px;border-radius:999px;font-weight:800}h1{font-size:clamp(36px,7vw,64px);line-height:1.03;margin:20px 0}.lead{font-size:20px;color:#536070;max-width:720px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}.card{border:1px solid #dfe8e3;border-radius:18px;padding:20px;background:#fbfdfc}.price{font-size:40px;font-weight:900;margin:24px 0 4px}.small{color:#68746f}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}input{width:100%;padding:14px;border:1px solid #ccd8d2;border-radius:12px;font:inherit}.btn{grid-column:1/-1;border:0;border-radius:14px;padding:16px;background:linear-gradient(90deg,var(--purple),#9b66e6);color:#fff;font-weight:900;font-size:17px;cursor:pointer}.back{display:inline-block;margin-top:22px;color:var(--green);font-weight:800;text-decoration:none}@media(max-width:720px){.hero{padding:25px}.grid,.form{grid-template-columns:1fr}}
-  </style></head><body><main><a class="brand" href="/">GWADA<span>PROJET</span></a><section class="hero"><span class="tag">NOUVEAU · INTELLIGENCE ARTIFICIELLE</span><h1>Rends ton entreprise visible grâce à l’IA</h1><p class="lead">GWADAPROJET prépare une base de communication adaptée à ton activité et au marché guadeloupéen, pour publier plus facilement sur les réseaux sociaux.</p><div class="grid"><div class="card"><b>Présentation claire</b><p>Un texte professionnel pour expliquer ton activité et ta valeur.</p></div><div class="card"><b>Idées de publications</b><p>Des sujets concrets pour Facebook, Instagram et tes autres réseaux.</p></div><div class="card"><b>Textes adaptables</b><p>Des modèles que tu peux personnaliser selon tes offres et actualités.</p></div></div><div class="price">19,90 €</div><div class="small">Paiement unique et sécurisé par Stripe</div><div class="form"><input id="name" autocomplete="name" placeholder="Ton nom" maxlength="120"><input id="email" type="email" autocomplete="email" placeholder="Ton e-mail" maxlength="254"><button class="btn" id="buy">Obtenir mon Pack Visibilité IA</button></div><p id="msg" class="small"></p><a class="back" href="/">← Retour à GWADAPROJET</a></section></main><script>
-  document.getElementById('buy').onclick=async()=>{const b=document.getElementById('buy'),m=document.getElementById('msg'),name=document.getElementById('name').value.trim(),email=document.getElementById('email').value.trim();if(!name||!email){m.textContent='Indique ton nom et ton e-mail.';return}b.disabled=true;b.textContent='Connexion à Stripe…';m.textContent='';try{const r=await fetch('/.netlify/functions/create-checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({plan:'visibility_ai',name,email})}),d=await r.json();if(!r.ok||!d.url)throw new Error(d.error||'Paiement indisponible');location.href=d.url}catch(e){m.textContent=e.message;b.disabled=false;b.textContent='Obtenir mon Pack Visibilité IA'}};
+  :root{--navy:#0b1f44;--green:#159447;--light:#f4faf7;--purple:#7557d9}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:linear-gradient(135deg,#f4faf7,#eef3ff);color:var(--navy)}main{max-width:980px;margin:auto;padding:28px 20px 60px}.brand{font-weight:900;font-size:26px;color:var(--navy);text-decoration:none}.brand span{color:var(--green)}.hero{background:#fff;border-radius:28px;padding:42px;margin-top:28px;box-shadow:0 18px 55px #0b1f4414}.tag{display:inline-block;background:#eee9ff;color:#593db8;padding:8px 14px;border-radius:999px;font-weight:800}h1{font-size:clamp(36px,7vw,64px);line-height:1.03;margin:20px 0}.lead{font-size:20px;color:#536070;max-width:720px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}.card{border:1px solid #dfe8e3;border-radius:18px;padding:20px;background:#fbfdfc}.price{font-size:40px;font-weight:900;margin:24px 0 4px}.small{color:#68746f}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}input,select{width:100%;padding:14px;border:1px solid #ccd8d2;border-radius:12px;font:inherit;background:#fff}.territory{grid-column:1/-1}.btn{grid-column:1/-1;border:0;border-radius:14px;padding:16px;background:linear-gradient(90deg,var(--purple),#9b66e6);color:#fff;font-weight:900;font-size:17px;cursor:pointer}.back{display:inline-block;margin-top:22px;color:var(--green);font-weight:800;text-decoration:none}@media(max-width:720px){.hero{padding:25px}.grid,.form{grid-template-columns:1fr}.territory{grid-column:auto}}
+  </style></head><body><main><a class="brand" href="/">GWADA<span>PROJET</span></a><section class="hero"><span class="tag">NÉ EN GUADELOUPE · OUVERT À DE NOUVEAUX MARCHÉS</span><h1>Rends ton entreprise visible grâce à l’IA</h1><p class="lead">GWADAPROJET prépare une base de communication adaptée à ton activité et à ton territoire, pour publier plus facilement sur les réseaux sociaux.</p><div class="grid"><div class="card"><b>Présentation claire</b><p>Un texte professionnel pour expliquer ton activité et ta valeur.</p></div><div class="card"><b>Idées de publications</b><p>Des sujets concrets pour Facebook, Instagram et tes autres réseaux.</p></div><div class="card"><b>Textes adaptables</b><p>Des modèles personnalisés pour ton marché local.</p></div></div><div class="price">19,90 €</div><div class="small">Paiement unique et sécurisé par Stripe</div><div class="form"><select id="territory" class="territory" aria-label="Territoire"><option value="guadeloupe">Guadeloupe</option><option value="martinique">Martinique</option><option value="france">France</option><option value="caraibe">Caraïbe</option></select><input id="name" autocomplete="name" placeholder="Ton nom" maxlength="120"><input id="email" type="email" autocomplete="email" placeholder="Ton e-mail" maxlength="254"><button class="btn" id="buy">Obtenir mon Pack Visibilité IA</button></div><p id="msg" class="small"></p><a class="back" href="/">← Retour à GWADAPROJET</a></section></main><script>
+  const territory=document.getElementById('territory');territory.value=localStorage.getItem('gwadaprojet_territory')||'guadeloupe';territory.onchange=()=>localStorage.setItem('gwadaprojet_territory',territory.value);
+  document.getElementById('buy').onclick=async()=>{const b=document.getElementById('buy'),m=document.getElementById('msg'),name=document.getElementById('name').value.trim(),email=document.getElementById('email').value.trim();if(!name||!email){m.textContent='Indique ton nom et ton e-mail.';return}localStorage.setItem('gwadaprojet_territory',territory.value);b.disabled=true;b.textContent='Connexion à Stripe…';m.textContent='';try{const r=await fetch('/.netlify/functions/create-checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({plan:'visibility_ai',name,email,territory:territory.value})}),d=await r.json();if(!r.ok||!d.url)throw new Error(d.error||'Paiement indisponible');location.href=d.url}catch(e){m.textContent=e.message;b.disabled=false;b.textContent='Obtenir mon Pack Visibilité IA'}};
   </script></body></html>`, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 
@@ -125,6 +138,7 @@ async function createCheckout(request, env) {
   const product = products[plan];
   const email = String(body.email || "").trim().slice(0, 254);
   const name = String(body.name || "").trim().slice(0, 120);
+  const territory = territoryProfile(body.territory);
 
   if (!product || !email || !name) {
     return json({ error: "Offre, nom ou e-mail invalide." }, 400);
@@ -140,6 +154,7 @@ async function createCheckout(request, env) {
   form.set("metadata[plan]", plan);
   form.set("metadata[gwadaprojet_mode]", stripe.mode);
   form.set("metadata[customer_name]", name);
+  form.set("metadata[territory]", territory.key);
   form.set("billing_address_collection", "required");
   form.set("invoice_creation[enabled]", "true");
   form.set("line_items[0][quantity]", "1");
@@ -194,16 +209,18 @@ async function verifyPayment(request, env) {
       return json({ error: "Le paiement n'est pas confirmé." }, 402);
     }
 
+    const territory = territoryProfile(session?.metadata?.territory);
     const token = await signEntitlement({
       v: 1,
       plan,
+      territory: territory.key,
       session_id: session.id,
       email: session.customer_details?.email || session.customer_email || "",
       iat: Date.now(),
       exp: Date.now() + 1000 * 60 * 60 * 24 * 365
     }, stripe.secretKey);
 
-    return json({ paid: true, plan, token });
+    return json({ paid: true, plan, territory: territory.key, token });
   } catch (e) {
     return json({ error: e?.message || "Erreur de vérification Stripe." }, 500);
   }
@@ -265,20 +282,22 @@ async function generateVisibilityPack(request, env) {
   const offer = String(body.offer || "").trim().slice(0,500);
   const tone = String(body.tone || "Professionnel et chaleureux").trim().slice(0,80);
   const channels = String(body.channels || "Facebook et Instagram").trim().slice(0,120);
+  const territory = territoryProfile(body.territory || access.territory);
   if (!business || !activity || !audience || !offer) return json({ error: "Informations incomplètes." }, 400);
-  const hashtags = ["#Guadeloupe","#Entrepreneuriat","#EntrepriseLocale","#GWADAPROJET","#" + business.replace(/[^A-Za-zÀ-ÿ0-9]/g,"")].join(" ");
+  const hashtags = [...territory.hashtags,"#GWADAPROJET","#" + business.replace(/[^A-Za-zÀ-ÿ0-9]/g,"")].join(" ");
   const text = `PACK VISIBILITÉ IA — GWADAPROJET
 Entreprise : ${business}
 Activité : ${activity}
+Territoire : ${territory.label}
 Public recherché : ${audience}
 Réseaux : ${channels}
 Ton : ${tone}
 
 1. PRÉSENTATION PROFESSIONNELLE
-${business} propose ${offer}. Notre objectif : accompagner ${audience} avec une approche ${tone.toLowerCase()}, pensée pour les réalités de la Guadeloupe. Contactez-nous pour vérifier ensemble si notre solution correspond à votre besoin.
+${business} propose ${offer}. Notre objectif : accompagner ${audience} avec une approche ${tone.toLowerCase()}, pensée pour les réalités du territoire ciblé. Contactez-nous pour vérifier ensemble si notre solution correspond à votre besoin.
 
 2. BIO COURTE POUR LES RÉSEAUX
-${activity} en Guadeloupe • ${offer} • Informations et contact par message privé.
+${activity} ${territory.place} • ${offer} • Informations et contact par message privé.
 
 3. SEPT PUBLICATIONS PRÊTES À ADAPTER
 
@@ -314,7 +333,7 @@ Demandez les informations pratiques, les conditions et le tarif avant de décide
 ${hashtags}
 
 PUBLICATION 7 — PROXIMITÉ
-Entreprise locale en Guadeloupe, ${business} souhaite construire une relation simple et transparente avec ses clients.
+Entreprise active ${territory.place}, ${business} souhaite construire une relation simple et transparente avec ses clients.
 Découvrez notre activité et échangeons sur votre projet.
 ${hashtags}
 
@@ -322,7 +341,7 @@ ${hashtags}
 • Une solution locale pour un besoin concret.
 • Votre projet mérite une réponse claire.
 • Parlons de votre besoin avant de parler de solution.
-• En Guadeloupe, développons aussi les entreprises locales.
+• ${territory.label} : développons aussi les entreprises locales.
 • Une bonne offre commence par une bonne écoute.
 
 5. APPELS À L’ACTION
@@ -342,7 +361,7 @@ Jour 6 : présenter clairement l’offre et ses conditions.
 Jour 7 : mesurer les messages, clics et demandes reçus.
 
 IMPORTANT
-Relisez chaque texte, ajoutez vos coordonnées, vos conditions réelles et vos visuels. Ne publiez aucun tarif, délai ou résultat que vous ne pouvez pas garantir.`;
+Relisez chaque texte, ajoutez vos coordonnées, vos conditions réelles et vos visuels. Ne publiez aucun tarif, délai ou résultat que vous ne pouvez pas garantir. Vérifiez les règles administratives, fiscales et commerciales applicables dans le territoire ciblé.`;
   return json({ text });
 }
 
@@ -353,7 +372,7 @@ async function serveSite(request, env) {
 
   return new HTMLRewriter().on("body", {
     element(element) {
-      element.append(`<section style="max-width:1100px;margin:28px auto;padding:0 20px"><div style="background:linear-gradient(135deg,#251b55,#7557d9);color:white;border-radius:26px;padding:32px;box-shadow:0 18px 50px #251b5530"><div style="font-weight:900;color:#d9ceff">NOUVEAU · VISIBILITÉ IA</div><h2 style="font-size:clamp(28px,5vw,44px);margin:10px 0">Développe ta communication avec l’intelligence artificielle</h2><p style="font-size:18px;max-width:760px;color:#eee9ff">Présentation professionnelle, idées de publications et textes adaptables pour tes réseaux sociaux.</p><a href="/visibilite-ia" style="display:inline-block;margin-top:12px;background:white;color:#4c349e;text-decoration:none;font-weight:900;padding:14px 20px;border-radius:13px">Découvrir le Pack IA — 19,90 €</a></div></section>`, { html: true });
+      element.append(`<section style="max-width:1100px;margin:28px auto;padding:0 20px"><div style="background:#fff;border:1px solid #dbe7e0;border-radius:24px;padding:28px;box-shadow:0 14px 42px #0b1f4412"><div style="font-weight:900;color:#159447">NÉ EN GUADELOUPE · OUVERT À DE NOUVEAUX MARCHÉS</div><h2 style="color:#0b1f44;font-size:clamp(27px,5vw,42px);margin:10px 0">Un projet adapté à ton territoire</h2><p style="color:#536070;font-size:18px;max-width:800px">Choisis ton marché : les contenus et recommandations seront adaptés à la Guadeloupe, la Martinique, la France ou la Caraïbe.</p><label for="gwada-territory-home" style="display:block;color:#0b1f44;font-weight:800;margin:18px 0 7px">Territoire ciblé</label><select id="gwada-territory-home" style="width:min(100%,420px);padding:14px;border:1px solid #bfcfc6;border-radius:12px;background:#fff;color:#0b1f44;font:inherit"><option value="guadeloupe">Guadeloupe</option><option value="martinique">Martinique</option><option value="france">France</option><option value="caraibe">Caraïbe</option></select></div></section><section style="max-width:1100px;margin:28px auto;padding:0 20px"><div style="background:linear-gradient(135deg,#251b55,#7557d9);color:white;border-radius:26px;padding:32px;box-shadow:0 18px 50px #251b5530"><div style="font-weight:900;color:#d9ceff">NOUVEAU · VISIBILITÉ IA</div><h2 style="font-size:clamp(28px,5vw,44px);margin:10px 0">Développe ta communication avec l’intelligence artificielle</h2><p style="font-size:18px;max-width:760px;color:#eee9ff">Présentation professionnelle, idées de publications et textes adaptables pour tes réseaux sociaux et ton marché.</p><a href="/visibilite-ia" style="display:inline-block;margin-top:12px;background:white;color:#4c349e;text-decoration:none;font-weight:900;padding:14px 20px;border-radius:13px">Découvrir le Pack IA — 19,90 €</a></div></section><script>(()=>{const select=document.getElementById('gwada-territory-home');select.value=localStorage.getItem('gwadaprojet_territory')||'guadeloupe';select.addEventListener('change',()=>localStorage.setItem('gwadaprojet_territory',select.value));const originalFetch=window.fetch.bind(window);window.fetch=(input,init={})=>{if(typeof input==='string'&&input.includes('create-checkout')&&init.body){try{const data=JSON.parse(init.body);data.territory=select.value;init={...init,body:JSON.stringify(data)}}catch{}}return originalFetch(input,init)}})();</script>`, { html: true });
     }
   }).transform(response);
 }
